@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --canvas-bg: #0B0F19;
+    --surface-card: #111827;
+    --surface-variant: #1E293B;
+    --accent-sky: #38BDF8;
+    --accent-on-primary: #0F172A;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+
+    --bucket-spouse: #E11D48;
+    --bucket-family: #D97706;
+    --bucket-friends: #2563EB;
+    --bucket-acquaintances: #0D9488;
+    --bucket-others: #7C3AED;
+  }
+
+  .light {
+    --canvas-bg: #F8FAFC;
+    --surface-card: #FFFFFF;
+    --surface-variant: #F1F5F9;
+    --accent-sky: #0284C7;
+    --accent-on-primary: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+
+    --bucket-spouse: #BE123C;
+    --bucket-family: #B45309;
+    --bucket-friends: #1D4ED8;
+    --bucket-acquaintances: #0F766E;
+    --bucket-others: #6D28D9;
+  }
+}
+
+/* Custom scrollbars for clean mobile appearance */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}

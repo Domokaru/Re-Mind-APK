@@ -1,0 +1,6 @@
+{
+  "name": "Re:MIND",
+  "description": "Personal mindfulness automation app sending thoughtful, recurring text messages to designated contacts with strict guardrails.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

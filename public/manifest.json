@@ -1,0 +1,23 @@
+{
+  "name": "Re:MIND",
+  "short_name": "Re:MIND",
+  "description": "Personal mindfulness automation app sending thoughtful, recurring text messages to designated contacts with strict guardrails.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "icons": [
+    {
+      "src": "/app-icon.jpeg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/aistudio/Gemini_Generated_Image_ej7xi6ej7xi6ej7x_ebada6ac.jpeg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

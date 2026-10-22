@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="1.1"
+        android:scaleY="1.1"
+        android:translateX="-5.4"
+        android:translateY="-5.4">
+        <!-- Chat Bubble in Mindfulness Sky Blue -->
+        <path
+            android:fillColor="#38BDF8"
+            android:pathData="M54,26 C38.5,26 26,37.2 26,51 C26,58.8 29.8,65.7 36,70.3 L34,79 L43.5,74.5 C46.7,75.5 50.3,76 54,76 C69.5,76 82,64.8 82,51 C82,37.2 69.5,26 54,26 Z" />
+        
+        <!-- Subtle Inner Cutout for Chat Bubble -->
+        <path
+            android:fillColor="#0B0F19"
+            android:pathData="M54,30 C41,30 30,39.4 30,51 C30,57.5 33.2,63.2 38.3,67.1 L37,73 L43.8,69.8 C46.9,71.2 50.3,72 54,72 C67,72 78,62.6 78,51 C78,39.4 67,30 54,30 Z" />
+
+        <!-- Minimalist Clock Face in Mindfulness Sky Blue -->
+        <path
+            android:strokeColor="#38BDF8"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:pathData="M54,51 L54,42 M54,51 L60,51" />
+
+        <!-- Pulse Wave Accented with Warm Rose -->
+        <path
+            android:strokeColor="#E11D48"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M42,51 L46,51 L49,45 L53,57 L57,47 L60,51 L66,51" />
+    </group>
+</vector>
