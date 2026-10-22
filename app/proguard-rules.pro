@@ -17,3 +17,8 @@
 
 # Hilt / Dagger
 -dontwarn com.google.errorprone.annotations.**
+-keep,allowobfuscation,allowshrinking @dagger.hilt.android.lifecycle.HiltViewModel class * extends androidx.lifecycle.ViewModel
+-keep,allowobfuscation,allowshrinking @androidx.hilt.work.HiltWorker class * extends androidx.work.ListenableWorker
+
+# Coroutines & WorkManager
+-dontwarn kotlinx.coroutines.**

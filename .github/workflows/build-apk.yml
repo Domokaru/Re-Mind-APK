@@ -24,6 +24,11 @@ jobs:
 
       - name: Accept Android SDK Licenses
         run: |
+          mkdir -p "$ANDROID_HOME/licenses" || true
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "84831b9409646a532e3034293298e12b7d52a19f" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "85642a38d148c4f9f80a93590218702ff4349c8d" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
       - name: Set up Gradle 8.11.1
@@ -35,20 +40,11 @@ jobs:
         run: |
           gradle :app:assembleDebug :app:assembleRelease --stacktrace
 
-      - name: Upload Debug APK Artifact
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: remind-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Upload Release APK Artifact (Sideload Ready)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: remind-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: remind-apks
+          path: app/build/outputs/apk/**/*.apk
           if-no-files-found: warn
           retention-days: 30
