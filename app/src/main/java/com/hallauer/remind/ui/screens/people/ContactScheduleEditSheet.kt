@@ -1,5 +1,10 @@
 package com.hallauer.remind.ui.screens.people
 
+import android.app.Activity
+import android.content.Intent
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,13 +15,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -26,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,10 +64,13 @@ fun ContactScheduleEditSheet(
     onDismiss: () -> Unit,
     onSaveSchedule: (ContactScheduleEntity) -> Unit
 ) {
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var displayName by remember { mutableStateOf(schedule?.displayName ?: "") }
     var phoneNumber by remember { mutableStateOf(schedule?.phoneNumber ?: "") }
+    var contactId by remember { mutableLongStateOf(schedule?.contactId ?: 0L) }
+    var lookupKey by remember { mutableStateOf(schedule?.contactLookupKey ?: "") }
     var selectedBucket by remember { mutableStateOf(schedule?.bucket ?: GroupBucket.FRIENDS) }
     var recurrenceType by remember { mutableStateOf(schedule?.recurrenceType ?: RecurrenceType.WEEKLY) }
     var intervalN by remember { mutableIntStateOf(schedule?.intervalN ?: 2) }
@@ -63,6 +80,43 @@ fun ContactScheduleEditSheet(
     var timeMode by remember { mutableStateOf(schedule?.timeMode ?: TimeMode.RANDOM_WINDOW_1HR) }
     var targetHour by remember { mutableIntStateOf(schedule?.targetHour ?: 14) } // 2:00 PM default
     var targetMinute by remember { mutableIntStateOf(schedule?.targetMinute ?: 15) }
+
+    // Direct Android Contact Picker Launcher
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { phoneUri ->
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                    ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY
+                )
+                context.contentResolver.query(phoneUri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                        val numIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        val idIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                        val lookupIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY)
+
+                        if (nameIdx >= 0) {
+                            cursor.getString(nameIdx)?.let { displayName = it }
+                        }
+                        if (numIdx >= 0) {
+                            cursor.getString(numIdx)?.let { phoneNumber = it }
+                        }
+                        if (idIdx >= 0) {
+                            contactId = cursor.getLong(idIdx)
+                        }
+                        if (lookupIdx >= 0) {
+                            cursor.getString(lookupIdx)?.let { lookupKey = it }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -83,7 +137,38 @@ fun ContactScheduleEditSheet(
                 color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Pick Contact Button (directly invokes Android Contacts)
+            Button(
+                onClick = {
+                    val pickIntent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                    contactPickerLauncher.launch(pickIntent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0284C7).copy(alpha = 0.2f),
+                    contentColor = Color(0xFF38BDF8)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContactPhone,
+                    contentDescription = "Pick Contact",
+                    tint = Color(0xFF38BDF8)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Pick Contact",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = Color(0xFF38BDF8)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Contact Name & Phone
             OutlinedTextField(
@@ -214,43 +299,68 @@ fun ContactScheduleEditSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Save CTA
-            Button(
-                onClick = {
-                    if (displayName.isNotBlank() && phoneNumber.isNotBlank()) {
-                        val entity = ContactScheduleEntity(
-                            id = schedule?.id ?: 0,
-                            contactLookupKey = schedule?.contactLookupKey ?: "manual_${System.currentTimeMillis()}",
-                            contactId = schedule?.contactId ?: System.currentTimeMillis(),
-                            displayName = displayName.trim(),
-                            phoneNumber = phoneNumber.trim(),
-                            normalizedNumber = PhoneNumberNormalizer.normalize(phoneNumber),
-                            bucket = selectedBucket,
-                            recurrenceType = recurrenceType,
-                            intervalN = intervalN,
-                            daysOfWeekCsv = selectedDaysCsv,
-                            dayOfMonth = dayOfMonth,
-                            monthOfYear = monthOfYear,
-                            timeMode = timeMode,
-                            targetHour = targetHour.coerceIn(7, 22),
-                            targetMinute = targetMinute.coerceIn(0, 59),
-                            isActive = true
-                        )
-                        onSaveSchedule(entity)
-                        onDismiss()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
-                enabled = displayName.isNotBlank() && phoneNumber.isNotBlank(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
+            // Action Buttons: Cancel (Circle X) and Save (Save Icon)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Save Schedule & Lock Next-1",
-                    color = Color(0xFF0F172A),
-                    fontWeight = FontWeight.Bold
-                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF1E293B))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = "Cancel",
+                        tint = Color(0xFF94A3B8)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                val isSaveEnabled = displayName.isNotBlank() && phoneNumber.isNotBlank()
+                IconButton(
+                    onClick = {
+                        if (isSaveEnabled) {
+                            val finalLookup = if (lookupKey.isNotBlank()) lookupKey else "manual_${System.currentTimeMillis()}"
+                            val finalId = if (contactId != 0L) contactId else System.currentTimeMillis()
+                            val entity = ContactScheduleEntity(
+                                id = schedule?.id ?: 0,
+                                contactLookupKey = finalLookup,
+                                contactId = finalId,
+                                displayName = displayName.trim(),
+                                phoneNumber = phoneNumber.trim(),
+                                normalizedNumber = PhoneNumberNormalizer.normalize(phoneNumber),
+                                bucket = selectedBucket,
+                                recurrenceType = recurrenceType,
+                                intervalN = intervalN,
+                                daysOfWeekCsv = selectedDaysCsv,
+                                dayOfMonth = dayOfMonth,
+                                monthOfYear = monthOfYear,
+                                timeMode = timeMode,
+                                targetHour = targetHour.coerceIn(7, 22),
+                                targetMinute = targetMinute.coerceIn(0, 59),
+                                isActive = true
+                            )
+                            onSaveSchedule(entity)
+                            onDismiss()
+                        }
+                    },
+                    enabled = isSaveEnabled,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSaveEnabled) Color(0xFF38BDF8) else Color(0xFF334155))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = "Save Schedule",
+                        tint = if (isSaveEnabled) Color(0xFF0F172A) else Color(0xFF64748B)
+                    )
+                }
             }
         }
     }
