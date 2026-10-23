@@ -66,14 +66,12 @@ import com.hallauer.remind.ui.screens.people.PeopleScreen
 import com.hallauer.remind.ui.screens.phrases.PhrasesScreen
 import com.hallauer.remind.ui.screens.settings.SettingsScreen
 import com.hallauer.remind.ui.theme.ReMINDTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.YearMonth
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)

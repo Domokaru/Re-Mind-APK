@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
@@ -79,15 +78,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Dagger Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-    // WorkManager & Hilt Work
+    // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
-    ksp(libs.androidx.hilt.compiler)
 
     // Jetpack DataStore & Serialization
     implementation(libs.androidx.datastore.preferences)

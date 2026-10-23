@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.hallauer.remind.core.constants.AppConstants
@@ -17,8 +16,6 @@ import com.hallauer.remind.data.provider.SmsCollisionDetector
 import com.hallauer.remind.data.provider.SmsDispatcher
 import com.hallauer.remind.data.repository.RemindRepository
 import com.hallauer.remind.service.DispatchAlarmReceiver
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -26,10 +23,9 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
-@HiltWorker
-class SmsDispatchWorker @AssistedInject constructor(
-    @Assisted private val appContext: Context,
-    @Assisted private val workerParams: WorkerParameters
+class SmsDispatchWorker(
+    private val appContext: Context,
+    workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
