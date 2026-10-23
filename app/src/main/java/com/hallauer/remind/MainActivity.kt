@@ -4,8 +4,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,10 +40,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hallauer.remind.core.util.BackupJsonSerializer
+import com.hallauer.remind.core.util.ContactScheduleBackupDto
+import com.hallauer.remind.core.util.DatabaseBackupDto
+import com.hallauer.remind.core.util.MessageLogBackupDto
+import com.hallauer.remind.core.util.PhraseBackupDto
 import com.hallauer.remind.core.util.RecurrenceCalculator
 import com.hallauer.remind.data.local.RemindDatabase
 import com.hallauer.remind.data.local.datastore.SettingsDataStore
 import com.hallauer.remind.data.local.datastore.ThemeMode
+import com.hallauer.remind.data.local.entity.ContactScheduleEntity
+import com.hallauer.remind.data.local.entity.GroupBucket
+import com.hallauer.remind.data.local.entity.PhraseEntity
+import com.hallauer.remind.data.local.entity.RecurrenceType
+import com.hallauer.remind.data.local.entity.TimeMode
+import com.hallauer.remind.data.provider.SmsDispatcher
+import com.hallauer.remind.data.remote.FirebaseBackupManager
 import com.hallauer.remind.data.repository.RemindRepository
 import com.hallauer.remind.ui.components.GlobalPauseBanner
 import com.hallauer.remind.ui.navigation.BottomNavItems
@@ -52,7 +67,9 @@ import com.hallauer.remind.ui.screens.phrases.PhrasesScreen
 import com.hallauer.remind.ui.screens.settings.SettingsScreen
 import com.hallauer.remind.ui.theme.ReMINDTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -85,6 +102,151 @@ class MainActivity : ComponentActivity() {
             val allPhrases by repository.allPhrasesFlow.collectAsState(initial = emptyList())
 
             var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
+
+            val exportLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.CreateDocument("application/json")
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    scope.launch(Dispatchers.IO) {
+                        runCatching {
+                            val allSchedules = database.contactScheduleDao().getAllSchedules()
+                            val allPhrasesList = database.phraseDao().getAllPhrases()
+                            val pendingLogsList = database.messageLogDao().getPendingLogs()
+
+                            val dto = DatabaseBackupDto(
+                                exportTimestampEpochMillis = System.currentTimeMillis(),
+                                schedules = allSchedules.map { s ->
+                                    ContactScheduleBackupDto(
+                                        id = s.id,
+                                        contactLookupKey = s.contactLookupKey,
+                                        contactId = s.contactId,
+                                        displayName = s.displayName,
+                                        phoneNumber = s.phoneNumber,
+                                        normalizedNumber = s.normalizedNumber,
+                                        bucket = s.bucket.name,
+                                        recurrenceType = s.recurrenceType.name,
+                                        intervalN = s.intervalN,
+                                        daysOfWeekCsv = s.daysOfWeekCsv,
+                                        dayOfMonth = s.dayOfMonth,
+                                        monthOfYear = s.monthOfYear,
+                                        timeMode = s.timeMode.name,
+                                        targetHour = s.targetHour,
+                                        targetMinute = s.targetMinute,
+                                        isActive = s.isActive,
+                                        lastSentPhraseText = s.lastSentPhraseText
+                                    )
+                                },
+                                phrases = allPhrasesList.map { p ->
+                                    PhraseBackupDto(
+                                        id = p.id,
+                                        bucket = p.bucket.name,
+                                        text = p.text,
+                                        isSeed = p.isSeed
+                                    )
+                                },
+                                logs = pendingLogsList.map { l ->
+                                    MessageLogBackupDto(
+                                        id = l.id,
+                                        contactScheduleId = l.contactScheduleId,
+                                        contactDisplayName = l.contactDisplayName,
+                                        contactPhoneNumber = l.contactPhoneNumber,
+                                        bucket = l.bucket.name,
+                                        messageText = l.messageText,
+                                        scheduledDateIso = l.scheduledDateIso,
+                                        scheduledEpochMillis = l.scheduledEpochMillis,
+                                        executedEpochMillis = l.executedEpochMillis,
+                                        status = l.status.name,
+                                        statusNote = l.statusNote
+                                    )
+                                }
+                            )
+
+                            val jsonStr = BackupJsonSerializer.serialize(dto)
+                            contentResolver.openOutputStream(uri)?.use { stream ->
+                                stream.write(jsonStr.toByteArray(Charsets.UTF_8))
+                            }
+                        }.onSuccess {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "Re:MIND backup exported successfully!", Toast.LENGTH_LONG).show()
+                            }
+                        }.onFailure { err ->
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "Export failed: ${err.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+            }
+
+            val importLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.OpenDocument()
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    scope.launch(Dispatchers.IO) {
+                        runCatching {
+                            val rawJson = contentResolver.openInputStream(uri)?.use { stream ->
+                                stream.bufferedReader().readText()
+                            } ?: throw IllegalStateException("Cannot read selected file.")
+
+                            val backupDto = BackupJsonSerializer.deserialize(rawJson).getOrThrow()
+
+                            backupDto.phrases.forEach { pDto ->
+                                val bucket = runCatching { GroupBucket.valueOf(pDto.bucket) }.getOrDefault(GroupBucket.OTHERS)
+                                database.phraseDao().insertPhrase(
+                                    PhraseEntity(
+                                        id = if (pDto.id > 0) pDto.id else 0L,
+                                        bucket = bucket,
+                                        text = pDto.text,
+                                        isSeed = pDto.isSeed
+                                    )
+                                )
+                            }
+
+                            backupDto.schedules.forEach { sDto ->
+                                val bucket = runCatching { GroupBucket.valueOf(sDto.bucket) }.getOrDefault(GroupBucket.OTHERS)
+                                val recType = runCatching { RecurrenceType.valueOf(sDto.recurrenceType) }.getOrDefault(RecurrenceType.DAILY)
+                                val tMode = runCatching { TimeMode.valueOf(sDto.timeMode) }.getOrDefault(TimeMode.EXACT_TIME)
+
+                                val entity = ContactScheduleEntity(
+                                    id = if (sDto.id > 0) sDto.id else 0L,
+                                    contactLookupKey = sDto.contactLookupKey,
+                                    contactId = sDto.contactId,
+                                    displayName = sDto.displayName,
+                                    phoneNumber = sDto.phoneNumber,
+                                    normalizedNumber = sDto.normalizedNumber,
+                                    bucket = bucket,
+                                    recurrenceType = recType,
+                                    intervalN = sDto.intervalN,
+                                    daysOfWeekCsv = sDto.daysOfWeekCsv,
+                                    dayOfMonth = sDto.dayOfMonth,
+                                    monthOfYear = sDto.monthOfYear,
+                                    timeMode = tMode,
+                                    targetHour = sDto.targetHour,
+                                    targetMinute = sDto.targetMinute,
+                                    isActive = sDto.isActive,
+                                    lastSentPhraseText = sDto.lastSentPhraseText
+                                )
+                                val insertedId = database.contactScheduleDao().insertSchedule(entity)
+                                val saved = entity.copy(id = if (entity.id == 0L) insertedId else entity.id)
+                                repository.preRollNextOccurrence(saved)
+                            }
+                            backupDto
+                        }.onSuccess { dto ->
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Imported ${dto.schedules.size} contacts and ${dto.phrases.size} phrases!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }.onFailure { err ->
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "Import failed: ${err.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+            }
 
             // Calculate virtual calendar projections for current visible month
             val thisMonth = remember { YearMonth.now() }
@@ -278,6 +440,54 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onGlobalPauseToggled = { paused ->
                                         scope.launch { settingsDataStore.setGlobalPause(paused) }
+                                    },
+                                    onSendTestSms = { phoneNumber ->
+                                        scope.launch(Dispatchers.IO) {
+                                            val dispatcher = SmsDispatcher(applicationContext)
+                                            val res = dispatcher.dispatchSms(
+                                                phoneNumber = phoneNumber,
+                                                messageText = "Re:MIND Carrier Test: Primary SIM hardware SMS radio is operational.",
+                                                logId = 999999L
+                                            )
+                                            withContext(Dispatchers.Main) {
+                                                if (res.isSuccess) {
+                                                    Toast.makeText(
+                                                        applicationContext,
+                                                        "Carrier test SMS dispatched successfully to $phoneNumber!",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                } else {
+                                                    val err = res.exceptionOrNull()?.message ?: "Radio error"
+                                                    Toast.makeText(
+                                                        applicationContext,
+                                                        "Carrier test SMS failed: $err",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onExportJsonClicked = {
+                                        exportLauncher.launch("remind_backup_${LocalDate.now()}.json")
+                                    },
+                                    onImportJsonClicked = {
+                                        importLauncher.launch(arrayOf("application/json", "text/*"))
+                                    },
+                                    onSyncFirebaseNow = {
+                                        scope.launch(Dispatchers.IO) {
+                                            val fb = FirebaseBackupManager(applicationContext)
+                                            val s = database.contactScheduleDao().getAllSchedules()
+                                            val p = database.phraseDao().getAllPhrases()
+                                            val l = database.messageLogDao().getPendingLogs()
+                                            val res = fb.backupData(s, p, l)
+                                            withContext(Dispatchers.Main) {
+                                                if (res.isSuccess) {
+                                                    Toast.makeText(applicationContext, "Cloud backup synced to Firestore!", Toast.LENGTH_LONG).show()
+                                                } else {
+                                                    Toast.makeText(applicationContext, res.exceptionOrNull()?.message ?: "Sync failed (offline)", Toast.LENGTH_LONG).show()
+                                                }
+                                            }
+                                        }
                                     },
                                     onOpenAndroidSettings = { openAppInfoSettings() }
                                 )

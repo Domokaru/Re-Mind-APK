@@ -58,5 +58,8 @@ fun GroupBucket.toColor(isDarkTheme: Boolean = androidx.compose.foundation.isSys
         GroupBucket.FRIENDS -> if (isDark) Color(0xFF2563EB) else Color(0xFF1D4ED8)      // Royal Blue
         GroupBucket.ACQUAINTANCES -> if (isDark) Color(0xFF0D9488) else Color(0xFF0F766E)// Emerald / Teal
         GroupBucket.OTHERS -> if (isDark) Color(0xFF7C3AED) else Color(0xFF6D28D9)       // Slate Purple
+        GroupBucket.COLLEAGUES -> if (isDark) Color(0xFF06B6D4) else Color(0xFF0891B2)   // Cyan / Sky
+        GroupBucket.MENTORS -> if (isDark) Color(0xFF8B5CF6) else Color(0xFF7C3AED)      // Violet
+        GroupBucket.CUSTOM -> if (isDark) Color(0xFFF59E0B) else Color(0xFFD97706)       // Amber
     }
 }

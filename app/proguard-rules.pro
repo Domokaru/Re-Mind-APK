@@ -22,3 +22,17 @@
 
 # Coroutines & WorkManager
 -dontwarn kotlinx.coroutines.**
+
+# Keep Room Entities, DAOs, Converters, and Models
+-keep class com.hallauer.remind.data.local.entity.** { *; }
+-keep interface com.hallauer.remind.data.local.dao.** { *; }
+-keep class com.hallauer.remind.data.local.Converters { *; }
+-keep class com.hallauer.remind.data.local.RemindDatabase { *; }
+
+# Keep Serialization DTOs and Serializable classes
+-keep @kotlinx.serialization.Serializable class * { *; }
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+}
+-keep class com.hallauer.remind.core.util.*Dto { *; }
+

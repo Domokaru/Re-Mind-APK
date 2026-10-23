@@ -72,4 +72,59 @@ object SilentStatusNotifier {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(logId.toInt() + 5000, notification)
     }
+
+    fun notifyMessageDispatched(context: Context, contactName: String, messageText: String, logId: Long) {
+        initNotificationChannels(context)
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            logId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, AppConstants.CHANNEL_ID_SILENT_STATUS)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Re:MIND — Sent Check-in to $contactName")
+            .setContentText("\"$messageText\"")
+            .setStyle(NotificationCompat.BigTextStyle().bigText("\"$messageText\""))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(logId.toInt() + 2000, notification)
+    }
+
+    fun notifyCollisionSkipped(context: Context, contactName: String, logId: Long) {
+        initNotificationChannels(context)
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            logId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val text = "Automated check-in was skipped because you already messaged $contactName earlier today."
+        val notification = NotificationCompat.Builder(context, AppConstants.CHANNEL_ID_SILENT_STATUS)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Re:MIND — Check-in Skipped: $contactName")
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(logId.toInt() + 3000, notification)
+    }
 }

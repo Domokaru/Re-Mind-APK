@@ -1,12 +1,14 @@
 package com.hallauer.remind.ui.screens.people
 
 import android.app.Activity
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Save
@@ -198,24 +201,25 @@ fun ContactScheduleEditSheet(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 GroupBucket.values().forEach { bucket ->
                     val isSelected = selectedBucket == bucket
                     val color = bucket.toColor(isDarkTheme = true)
                     Box(
                         modifier = Modifier
-                            .weight(1f)
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) color.copy(alpha = 0.25f) else Color(0xFF1E293B))
                             .clickable { selectedBucket = bucket }
-                            .padding(vertical = 8.dp),
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = bucket.displayName,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             color = if (isSelected) color else Color(0xFF94A3B8)
                         )
@@ -266,35 +270,330 @@ fun ContactScheduleEditSheet(
                 }
             }
 
+            // Recurrence Specific Configuration (Days of week, interval, or day of month)
+            when (recurrenceType) {
+                RecurrenceType.WEEKLY -> {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Active Days of Week",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF94A3B8)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val dayLabels = listOf(
+                        Pair("Mon", 1), Pair("Tue", 2), Pair("Wed", 3),
+                        Pair("Thu", 4), Pair("Fri", 5), Pair("Sat", 6), Pair("Sun", 7)
+                    )
+                    val currentDays = selectedDaysCsv.split(",").mapNotNull { it.trim().toIntOrNull() }.toSet()
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        dayLabels.forEach { (label, iso) ->
+                            val isChecked = currentDays.contains(iso)
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isChecked) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                                    .clickable {
+                                        val next = if (isChecked) currentDays - iso else currentDays + iso
+                                        selectedDaysCsv = next.sorted().joinToString(",")
+                                    }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isChecked) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                RecurrenceType.EVERY_N_DAYS, RecurrenceType.EVERY_N_WEEKS -> {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = if (recurrenceType == RecurrenceType.EVERY_N_DAYS) "Repeat every:" else "Repeat every:",
+                            fontSize = 12.sp,
+                            color = Color(0xFF94A3B8)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B))
+                                .clickable { if (intervalN > 1) intervalN-- }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("-", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                        Text(
+                            text = "$intervalN ${if (recurrenceType == RecurrenceType.EVERY_N_DAYS) "Days" else "Weeks"}",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B))
+                                .clickable { if (intervalN < 60) intervalN++ }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+
+                RecurrenceType.MONTHLY_DAY -> {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Day of Month:",
+                            fontSize = 12.sp,
+                            color = Color(0xFF94A3B8)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B))
+                                .clickable { if (dayOfMonth > 1) dayOfMonth-- }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("-", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                        Text(
+                            text = "Day $dayOfMonth",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B))
+                                .clickable { if (dayOfMonth < 31) dayOfMonth++ }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+
             Spacer(modifier = Modifier.height(18.dp))
 
             // Time Mode Selector (Exact Time vs 1-Hour Random Window)
             Text(
-                text = "Dispatch Timing Mode",
+                text = "Dispatch Timing (7:00 AM - 10:59 PM Safe Window)",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF94A3B8)
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = timeMode == TimeMode.EXACT_TIME,
-                    onClick = { timeMode = TimeMode.EXACT_TIME },
-                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF38BDF8))
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Exact Time (e.g. 2:15 PM)", color = Color.White, fontSize = 13.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Exact Time Mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (timeMode == TimeMode.EXACT_TIME) Color(0xFF0284C7).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                        .clickable { timeMode = TimeMode.EXACT_TIME }
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Exact Time",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (timeMode == TimeMode.EXACT_TIME) Color(0xFF38BDF8) else Color(0xFF94A3B8)
+                    )
+                }
+
+                // 1-Hour Window Mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF0284C7).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                        .clickable { timeMode = TimeMode.RANDOM_WINDOW_1HR }
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "1-Hour Random Window",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF38BDF8) else Color(0xFF94A3B8)
+                    )
+                }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = timeMode == TimeMode.RANDOM_WINDOW_1HR,
-                    onClick = { timeMode = TimeMode.RANDOM_WINDOW_1HR },
-                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF38BDF8))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Display current selected time and trigger native Android TimePickerDialog
+            val formattedHour = if (targetHour % 12 == 0) 12 else targetHour % 12
+            val amPm = if (targetHour >= 12) "PM" else "AM"
+            val displayTimeString = if (timeMode == TimeMode.EXACT_TIME) {
+                String.format("%d:%02d %s", formattedHour, targetMinute, amPm)
+            } else {
+                "$formattedHour:00 - $formattedHour:59 $amPm (Random Window)"
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1E293B))
+                    .clickable {
+                        TimePickerDialog(
+                            context,
+                            { _, h, m ->
+                                targetHour = h.coerceIn(7, 22)
+                                targetMinute = m
+                            },
+                            targetHour,
+                            targetMinute,
+                            false
+                        ).show()
+                    }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = if (timeMode == TimeMode.EXACT_TIME) "Selected Dispatch Time" else "Selected 1-Hour Window",
+                        fontSize = 11.sp,
+                        color = Color(0xFF94A3B8)
+                    )
+                    Text(
+                        text = displayTimeString,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccessTime,
+                        contentDescription = "Clock",
+                        tint = Color(0xFF38BDF8),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Set Clock",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF38BDF8)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Start Hour Selector Chips (7 AM to 10 PM)
+            Text(
+                text = "Start Hour (Tap to Pick)",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF94A3B8)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                (7..22).forEach { hour ->
+                    val isSelected = targetHour == hour
+                    val h12 = if (hour % 12 == 0) 12 else hour % 12
+                    val period = if (hour >= 12) "PM" else "AM"
+                    val label = "$h12 $period"
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                            .clickable { targetHour = hour }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                        )
+                    }
+                }
+            }
+
+            // Minute Selector Chips (when EXACT_TIME)
+            if (timeMode == TimeMode.EXACT_TIME) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Minute",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF94A3B8)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("1-Hour Random Window (e.g. 2:00 - 2:59 PM)", color = Color.White, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(0, 15, 30, 45).forEach { min ->
+                        val isSelected = targetMinute == min
+                        val label = String.format(":%02d", min)
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                                .clickable { targetMinute = min }
+                                .padding(vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

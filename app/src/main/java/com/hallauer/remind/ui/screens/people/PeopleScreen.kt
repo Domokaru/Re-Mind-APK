@@ -20,8 +20,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -30,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,9 +62,12 @@ fun PeopleScreen(
 ) {
     var selectedFilter by remember { mutableStateOf<String>("All") }
     var editingSchedule by remember { mutableStateOf<ContactScheduleEntity?>(null) }
+    var scheduleToDelete by remember { mutableStateOf<ContactScheduleEntity?>(null) }
     var isAddingNew by remember { mutableStateOf(false) }
 
-    val filterOptions = listOf("All", "Spouse", "Family", "Friends", "Acquaintances", "Others", "Paused")
+    val filterOptions = remember {
+        listOf("All") + GroupBucket.values().map { it.displayName } + listOf("Paused")
+    }
 
     val filteredList = schedules.filter { schedule ->
         when (selectedFilter) {
@@ -126,7 +134,8 @@ fun PeopleScreen(
                         ContactScheduleCard(
                             schedule = schedule,
                             onToggleActive = { onToggleActive(schedule.id, it) },
-                            onEdit = { editingSchedule = schedule }
+                            onEdit = { editingSchedule = schedule },
+                            onDelete = { scheduleToDelete = schedule }
                         )
                     }
                 }
@@ -162,13 +171,51 @@ fun PeopleScreen(
             onSaveSchedule = onSaveSchedule
         )
     }
+
+    scheduleToDelete?.let { schedule ->
+        AlertDialog(
+            onDismissRequest = { scheduleToDelete = null },
+            containerColor = Color(0xFF1E293B),
+            title = {
+                Text(
+                    text = "Delete Connection?",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to remove ${schedule.displayName}? All recurring schedules, locked-in upcoming messages, and activity history for this contact will be permanently deleted.",
+                    color = Color(0xFF94A3B8),
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteSchedule(schedule)
+                        scheduleToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                ) {
+                    Text("Delete Connection", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { scheduleToDelete = null }) {
+                    Text("Cancel", color = Color(0xFF94A3B8))
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun ContactScheduleCard(
     schedule: ContactScheduleEntity,
     onToggleActive: (Boolean) -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -256,9 +303,13 @@ fun ContactScheduleCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Schedule", tint = Color(0xFF94A3B8))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onEdit) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Schedule", tint = Color(0xFF94A3B8))
+                        }
+                        IconButton(onClick = onDelete) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete Connection", tint = Color(0xFFF87171))
+                        }
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {

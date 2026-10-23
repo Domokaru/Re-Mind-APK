@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -31,16 +33,23 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hallauer.remind.data.local.datastore.ThemeMode
@@ -51,11 +60,15 @@ fun SettingsScreen(
     isGlobalPauseEnabled: Boolean,
     onThemeChanged: (ThemeMode) -> Unit,
     onGlobalPauseToggled: (Boolean) -> Unit,
+    onSendTestSms: (String) -> Unit = {},
     onExportJsonClicked: () -> Unit = {},
     onImportJsonClicked: () -> Unit = {},
     onSyncFirebaseNow: () -> Unit = {},
     onOpenAndroidSettings: () -> Unit = {}
 ) {
+    var testPhoneNumber by remember { mutableStateOf("") }
+    var testSmsStatus by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -218,6 +231,92 @@ fun SettingsScreen(
                             color = Color(0xFF94A3B8)
                         )
                     }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Option A: Carrier SMS Diagnostics & Test Send
+        SectionTitle(title = "Carrier SMS Diagnostics")
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text(
+                    text = "Carrier SMS 'Test Send to Self'",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Verify that background SMS dispatch works on this hardware and carrier network before your scheduled messages fire.",
+                    fontSize = 12.sp,
+                    color = Color(0xFF94A3B8),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = testPhoneNumber,
+                    onValueChange = { testPhoneNumber = it },
+                    label = { Text("Your Phone Number", color = Color(0xFF94A3B8)) },
+                    placeholder = { Text("e.g. +1 555-123-4567", color = Color(0xFF64748B)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF38BDF8),
+                        unfocusedBorderColor = Color(0xFF334155),
+                        cursorColor = Color(0xFF38BDF8)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = {
+                        if (testPhoneNumber.isNotBlank()) {
+                            testSmsStatus = "Dispatching test SMS via primary SIM..."
+                            onSendTestSms(testPhoneNumber)
+                        }
+                    },
+                    enabled = testPhoneNumber.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF38BDF8),
+                        contentColor = Color(0xFF0F172A),
+                        disabledContainerColor = Color(0xFF1E293B),
+                        disabledContentColor = Color(0xFF64748B)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Send Test SMS to Self",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+
+                if (testSmsStatus != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = testSmsStatus!!,
+                        fontSize = 11.sp,
+                        color = Color(0xFF38BDF8),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
                 }
             }
         }

@@ -110,6 +110,7 @@ class SmsDispatchWorker @AssistedInject constructor(
                 statusNote = "Skipped: You already messaged ${schedule.displayName} today"
             )
             messageLogDao.updateLog(skippedLog)
+            SilentStatusNotifier.notifyCollisionSkipped(appContext, schedule.displayName, pendingLog.id)
 
             // Update last dispatched date and pre-roll next occurrence
             contactScheduleDao.updateSchedule(
@@ -147,6 +148,7 @@ class SmsDispatchWorker @AssistedInject constructor(
                 statusNote = "Dispatched via device SMS"
             )
             messageLogDao.updateLog(sentLog)
+            SilentStatusNotifier.notifyMessageDispatched(appContext, schedule.displayName, pendingLog.messageText, pendingLog.id)
 
             // Update contact with last sent phrase and last dispatched date
             val updatedSchedule = schedule.copy(

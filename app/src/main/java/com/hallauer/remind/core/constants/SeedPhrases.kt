@@ -217,6 +217,40 @@ object SeedPhrases {
         SeedPhrase(
             bucket = GroupBucket.OTHERS,
             text = "Just a quick hello today to hope all is well in your world."
+        ),
+
+        // ==================== BUCKET 6: COLLEAGUES ====================
+        SeedPhrase(
+            bucket = GroupBucket.COLLEAGUES,
+            text = "Hey! Just checking in to see how your week is going with projects. Hope all is smooth on your side."
+        ),
+        SeedPhrase(
+            bucket = GroupBucket.COLLEAGUES,
+            text = "Hope your week is off to a productive start! Just touching base to say hello."
+        ),
+        SeedPhrase(
+            bucket = GroupBucket.COLLEAGUES,
+            text = "Great collaborating with you recently. Hope you get some downtime to recharge this weekend."
+        ),
+
+        // ==================== BUCKET 7: MENTORS ====================
+        SeedPhrase(
+            bucket = GroupBucket.MENTORS,
+            text = "Thinking of your advice recently and wanted to say thank you again for your guidance. Hope all is well!"
+        ),
+        SeedPhrase(
+            bucket = GroupBucket.MENTORS,
+            text = "Hope your week is going great! Just wanted to send a quick note of appreciation for your mentorship."
+        ),
+
+        // ==================== BUCKET 8: CUSTOM ====================
+        SeedPhrase(
+            bucket = GroupBucket.CUSTOM,
+            text = "Hope you are having a wonderful day! Just thinking of you and sending good thoughts."
+        ),
+        SeedPhrase(
+            bucket = GroupBucket.CUSTOM,
+            text = "Just a quick hello to check in and see how life is treating you."
         )
     )
 }

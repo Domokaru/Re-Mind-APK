@@ -22,14 +22,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Accept Android SDK Licenses
+      - name: Pre-accept Android SDK Licenses & Configure SDK
         run: |
           mkdir -p "$ANDROID_HOME/licenses" || true
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo "84831b9409646a532e3034293298e12b7d52a19f" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          echo "85642a38d148c4f9f80a93590218702ff4349c8d" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          printf "24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f5187479451eabf01fb78af6dfcb131a6481e\n84831b9409646a532e3034293298e12b7d52a19f\n" > "$ANDROID_HOME/licenses/android-sdk-license"
+          printf "85642a38d148c4f9f80a93590218702ff4349c8d\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          printf "601085b94cd77f0b54ff86406957099fed7926d4\n" > "$ANDROID_HOME/licenses/android-googletv-license"
+          printf "33b6a2b6492218415c21373550289c6c0e5d1f67\n" > "$ANDROID_HOME/licenses/google-gdk-license"
+          printf "e9acab5b5f1556e4dec5ca3658042d118c30e5d5\n" > "$ANDROID_HOME/licenses/mips-android-sysimage-license"
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: Set up Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
