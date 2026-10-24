@@ -47,7 +47,7 @@ fun GlobalPauseBanner(
         TextButton(onClick = onResumeClicked) {
             Text(
                 text = "Resume",
-                color = Color(0xFF38BDF8),
+                color = Color(0xFF08DAC9),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )

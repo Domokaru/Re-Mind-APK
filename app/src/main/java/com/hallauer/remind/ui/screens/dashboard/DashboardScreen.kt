@@ -80,11 +80,11 @@ fun DashboardScreen(
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = Color(0xFF0B0F19),
-            contentColor = Color(0xFF38BDF8),
+            contentColor = Color(0xFF08DAC9),
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = Color(0xFF38BDF8)
+                    color = Color(0xFF08DAC9)
                 )
             }
         ) {
@@ -206,7 +206,7 @@ fun UpcomingMessageCard(
                     Text(
                         text = formatDateTime(log.scheduledEpochMillis),
                         fontSize = 12.sp,
-                        color = Color(0xFF38BDF8)
+                        color = Color(0xFF08DAC9)
                     )
                 }
 
@@ -293,7 +293,7 @@ fun StatusPill(status: MessageStatus) {
         MessageStatus.SKIPPED_COLLISION -> Triple(Color(0xFF78350F), Color(0xFFFBBF24), "SKIPPED: RECENT TEXT")
         MessageStatus.SKIPPED_MANUAL -> Triple(Color(0xFF1E293B), Color(0xFF94A3B8), "SKIPPED: MANUAL")
         MessageStatus.FAILED -> Triple(Color(0xFF7F1D1D), Color(0xFFF87171), "FAILED")
-        MessageStatus.PENDING -> Triple(Color(0xFF0C4A6E), Color(0xFF38BDF8), "PENDING")
+        MessageStatus.PENDING -> Triple(Color(0xFF042F2C), Color(0xFF08DAC9), "PENDING")
     }
 
     Box(

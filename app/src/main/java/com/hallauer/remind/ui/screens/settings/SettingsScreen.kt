@@ -88,46 +88,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Android 15/16 Sideload Setup
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = Color(0xFFF59E0B),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Sideloaded APK Setup (Android 15 / 16)",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                Text(
-                    text = "To allow background SMS sending on Android 15/16: In Android App Info, tap the 3-dot menu (top-right) > select 'Allow restricted settings', then enable SEND_SMS, READ_CONTACTS, and Unrestricted Battery.",
-                    fontSize = 12.sp,
-                    color = Color(0xFF94A3B8),
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-                Button(
-                    onClick = onOpenAndroidSettings,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Open App Info", fontSize = 12.sp, color = Color(0xFF0F172A))
-                }
-            }
-        }
-
         // Section 1: Appearance Theme
         SectionTitle(title = "Appearance")
         Card(
@@ -147,20 +107,20 @@ fun SettingsScreen(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                            .background(if (isSelected) Color(0xFF08DAC9) else Color(0xFF1E293B))
                             .clickable { onThemeChanged(mode) }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = when (mode) {
-                                ThemeMode.DARK -> "Dark (Default)"
+                                ThemeMode.DARK -> "Dark"
                                 ThemeMode.LIGHT -> "Light"
                                 ThemeMode.SYSTEM -> "System"
                             },
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                            color = if (isSelected) Color(0xFF04201D) else Color(0xFF94A3B8)
                         )
                     }
                 }
@@ -183,13 +143,13 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Vacation Mode (Pause All)",
+                            text = "Vacation Mode",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
                             color = Color.White
                         )
                         Text(
-                            text = "Silently pauses all scheduled messages while keeping upcoming dates queued.",
+                            text = "Temporarily pause all automated dispatches",
                             fontSize = 12.sp,
                             color = Color(0xFF94A3B8)
                         )
@@ -199,8 +159,8 @@ fun SettingsScreen(
                         checked = isGlobalPauseEnabled,
                         onCheckedChange = onGlobalPauseToggled,
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color(0xFF0F172A),
-                            checkedTrackColor = Color(0xFF38BDF8)
+                            checkedThumbColor = Color(0xFF04201D),
+                            checkedTrackColor = Color(0xFF08DAC9)
                         )
                     )
                 }
@@ -214,7 +174,7 @@ fun SettingsScreen(
                     Icon(
                         imageVector = Icons.Default.SimCard,
                         contentDescription = null,
-                        tint = Color(0xFF38BDF8),
+                        tint = Color(0xFF08DAC9),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
@@ -237,8 +197,8 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Option A: Carrier SMS Diagnostics & Test Send
-        SectionTitle(title = "Carrier SMS Diagnostics")
+        // Section 3: Carrier SMS Diagnostic
+        SectionTitle(title = "Carrier SMS Diagnostic")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
             shape = RoundedCornerShape(12.dp),
@@ -246,13 +206,13 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "Carrier SMS 'Test Send to Self'",
+                    text = "Test Send to Self",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
                 Text(
-                    text = "Verify that background SMS dispatch works on this hardware and carrier network before your scheduled messages fire.",
+                    text = "Send a test SMS to confirm hardware carrier dispatch on this device.",
                     fontSize = 12.sp,
                     color = Color(0xFF94A3B8),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -263,16 +223,16 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = testPhoneNumber,
                     onValueChange = { testPhoneNumber = it },
-                    label = { Text("Your Phone Number", color = Color(0xFF94A3B8)) },
-                    placeholder = { Text("e.g. +1 555-123-4567", color = Color(0xFF64748B)) },
+                    label = { Text("Phone Number", color = Color(0xFF94A3B8)) },
+                    placeholder = { Text("+1 555-123-4567", color = Color(0xFF64748B)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF38BDF8),
+                        focusedBorderColor = Color(0xFF08DAC9),
                         unfocusedBorderColor = Color(0xFF334155),
-                        cursorColor = Color(0xFF38BDF8)
+                        cursorColor = Color(0xFF08DAC9)
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -282,14 +242,14 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         if (testPhoneNumber.isNotBlank()) {
-                            testSmsStatus = "Dispatching test SMS via primary SIM..."
+                            testSmsStatus = "Dispatching test SMS..."
                             onSendTestSms(testPhoneNumber)
                         }
                     },
                     enabled = testPhoneNumber.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF38BDF8),
-                        contentColor = Color(0xFF0F172A),
+                        containerColor = Color(0xFF08DAC9),
+                        contentColor = Color(0xFF04201D),
                         disabledContainerColor = Color(0xFF1E293B),
                         disabledContentColor = Color(0xFF64748B)
                     ),
@@ -303,7 +263,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Send Test SMS to Self",
+                        text = "Send Test SMS",
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -314,7 +274,7 @@ fun SettingsScreen(
                     Text(
                         text = testSmsStatus!!,
                         fontSize = 11.sp,
-                        color = Color(0xFF38BDF8),
+                        color = Color(0xFF08DAC9),
                         modifier = Modifier.padding(horizontal = 4.dp)
                     )
                 }
@@ -323,8 +283,8 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 3: Offline & Cloud Backup
-        SectionTitle(title = "Data & Cloud Backup")
+        // Section 4: Data & Cloud Backup
+        SectionTitle(title = "Data & Backup")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
             shape = RoundedCornerShape(12.dp),
@@ -338,7 +298,7 @@ fun SettingsScreen(
                     color = Color.White
                 )
                 Text(
-                    text = "Syncs schedules and phrase pools weekly. Operates 100% fault-tolerant if offline.",
+                    text = "Syncs schedules and phrase pools weekly with cloud storage.",
                     fontSize = 12.sp,
                     color = Color(0xFF94A3B8),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -348,7 +308,7 @@ fun SettingsScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.CloudUpload, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.CloudUpload, contentDescription = null, tint = Color(0xFF08DAC9), modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Sync to Cloud Now", color = Color.White, fontSize = 12.sp)
                 }
@@ -356,13 +316,13 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Offline JSON Backup",
+                    text = "Local JSON Backup",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
                 Text(
-                    text = "Export or restore your full Room database locally via Android Storage Access Framework.",
+                    text = "Export or restore database backups via device storage.",
                     fontSize = 12.sp,
                     color = Color(0xFF94A3B8),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -376,7 +336,7 @@ fun SettingsScreen(
                         onClick = onExportJsonClicked,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.FileDownload, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.FileDownload, contentDescription = null, tint = Color(0xFF08DAC9), modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Export JSON", color = Color.White, fontSize = 11.sp)
                     }
@@ -385,7 +345,7 @@ fun SettingsScreen(
                         onClick = onImportJsonClicked,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = Color(0xFF08DAC9), modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Import JSON", color = Color.White, fontSize = 11.sp)
                     }
@@ -395,8 +355,8 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 4: System Permissions Health
-        SectionTitle(title = "System Permissions Health")
+        // Section 5: System Permissions
+        SectionTitle(title = "System Permissions")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
             shape = RoundedCornerShape(12.dp),
@@ -404,24 +364,24 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HealthStatusRow(
-                    title = "SMS Dispatch & Read (SEND_SMS)",
+                    title = "SMS Dispatch",
                     isGranted = true,
-                    note = "Required for primary SIM automated text dispatch"
+                    note = "Primary SIM carrier text dispatch"
                 )
                 HealthStatusRow(
-                    title = "Google Contacts (READ_CONTACTS)",
+                    title = "Google Contacts",
                     isGranted = true,
-                    note = "Queries phone numbers and verifies contact stability monthly"
+                    note = "Recipient phone verification"
                 )
                 HealthStatusRow(
-                    title = "Exact Alarms (SCHEDULE_EXACT_ALARM)",
+                    title = "Exact Alarms",
                     isGranted = true,
-                    note = "Wakes up phone at target minute to dispatch silently"
+                    note = "Scheduled dispatch timing"
                 )
                 HealthStatusRow(
-                    title = "Google Messages RCS Collision Detector",
+                    title = "RCS Collision Detector",
                     isGranted = true,
-                    note = "Notification listener service avoids double texting"
+                    note = "Prevents duplicate same-day messages"
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -430,7 +390,7 @@ fun SettingsScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Open Android App Info & Permissions", color = Color(0xFF38BDF8), fontSize = 12.sp)
+                    Text("Manage App Permissions", color = Color(0xFF08DAC9), fontSize = 12.sp)
                 }
             }
         }
@@ -443,7 +403,7 @@ private fun SectionTitle(title: String) {
         text = title,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF38BDF8),
+        color = Color(0xFF08DAC9),
         modifier = Modifier.padding(bottom = 6.dp)
     )
 }

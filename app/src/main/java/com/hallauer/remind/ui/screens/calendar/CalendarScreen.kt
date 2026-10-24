@@ -106,7 +106,7 @@ fun CalendarScreen(
                     currentYearMonth = YearMonth.now()
                     selectedDate = LocalDate.now()
                 }) {
-                    Text("Today", color = Color(0xFF38BDF8), fontWeight = FontWeight.SemiBold)
+                    Text("Today", color = Color(0xFF08DAC9), fontWeight = FontWeight.SemiBold)
                 }
                 IconButton(onClick = { currentYearMonth = currentYearMonth.plusMonths(1) }) {
                     Icon(Icons.Default.ChevronRight, contentDescription = "Next Month", tint = Color.White)
@@ -169,7 +169,7 @@ fun CalendarScreen(
                                     )
                                     .border(
                                         width = if (isSelected) 1.5.dp else if (isToday) 1.dp else 0.dp,
-                                        color = if (isSelected) Color(0xFF38BDF8) else if (isToday) Color(0xFF0284C7) else Color.Transparent,
+                                        color = if (isSelected) Color(0xFF08DAC9) else if (isToday) Color(0xFF08DAC9).copy(alpha = 0.5f) else Color.Transparent,
                                         shape = RoundedCornerShape(8.dp)
                                     )
                                     .clickable { selectedDate = thisDate },
@@ -180,7 +180,7 @@ fun CalendarScreen(
                                         text = "$thisDay",
                                         fontSize = 12.sp,
                                         fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) Color(0xFF38BDF8) else Color.White
+                                        color = if (isSelected) Color(0xFF08DAC9) else Color.White
                                     )
 
                                     // Dot indicators for buckets
@@ -267,7 +267,7 @@ fun CalendarScreen(
                         Text(
                             text = "Locked-in Next-1 • Tap for actions",
                             fontSize = 11.sp,
-                            color = Color(0xFF38BDF8)
+                            color = Color(0xFF08DAC9)
                         )
                     }
                 }

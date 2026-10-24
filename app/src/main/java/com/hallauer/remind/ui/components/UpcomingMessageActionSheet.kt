@@ -141,10 +141,10 @@ fun UpcomingMessageActionSheet(
                             }
                         },
                         enabled = guardrailError == null && editedText.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9)),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Save Text", color = Color(0xFF0F172A))
+                        Text("Save Text", color = Color(0xFF04201D), fontWeight = FontWeight.Bold)
                     }
                 }
             } else {
@@ -171,7 +171,7 @@ fun UpcomingMessageActionSheet(
                 icon = Icons.Default.Send,
                 title = "Send Now",
                 subtitle = "Dispatch immediately and roll next occurrence",
-                tint = Color(0xFF38BDF8),
+                tint = Color(0xFF08DAC9),
                 onClick = {
                     onSendNow(pendingLog)
                     onDismiss()

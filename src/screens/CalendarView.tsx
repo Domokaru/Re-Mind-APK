@@ -120,7 +120,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </button>
           <button
             onClick={jumpToToday}
-            className="px-2.5 py-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-2.5 py-1 text-xs font-semibold text-[#08dac9] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
             Today
           </button>
@@ -184,9 +184,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 onClick={() => setSelectedDateIso(dateIso)}
                 className={`h-12 rounded-xl flex flex-col items-center justify-between p-1.5 transition-all text-xs font-semibold ${
                   isSelected
-                    ? 'bg-sky-100 dark:bg-sky-500/20 border-2 border-sky-500 dark:border-sky-400 text-sky-800 dark:text-sky-300 font-bold'
+                    ? 'bg-[#08dac9]/20 border-2 border-[#08dac9] text-[#08dac9] font-bold'
                     : isToday
-                      ? 'bg-sky-50 dark:bg-slate-800 border border-sky-400/80 text-sky-900 dark:text-white'
+                      ? 'bg-[#08dac9]/10 dark:bg-slate-800 border border-[#08dac9]/60 text-[#08dac9] dark:text-white'
                       : 'bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
@@ -215,7 +215,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-            <CalendarIcon className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <CalendarIcon className="w-3.5 h-3.5 text-[#08dac9]" />
             <span>Agenda for {selectedDateHeader}</span>
           </h3>
           <span className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -237,14 +237,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           return (
             <div
               key={`pending-${log.id}`}
-              className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-sky-400/60 dark:hover:border-sky-500/40 rounded-2xl shadow-sm transition-all overflow-hidden"
+              className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-[#08dac9]/60 rounded-2xl shadow-sm transition-all overflow-hidden"
             >
               <div
                 onClick={() => toggleExpandPending(log.id)}
                 className="p-3.5 flex items-center justify-between cursor-pointer group"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#08dac9] transition-colors">
                     {log.contactDisplayName}
                   </span>
                   <BucketBadge bucket={log.bucket} />
@@ -258,7 +258,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       e.stopPropagation();
                       onSelectUpcoming(log);
                     }}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-800 transition-colors"
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-[#08dac9] dark:text-slate-400 dark:hover:text-[#08dac9] hover:bg-[#08dac9]/10 dark:hover:bg-slate-800 transition-colors"
                     title="Manual actions"
                     aria-label="Manual actions"
                   >

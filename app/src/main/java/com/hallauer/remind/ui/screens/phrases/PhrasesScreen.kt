@@ -157,8 +157,8 @@ fun PhrasesScreen(
         // Add Phrase FAB
         FloatingActionButton(
             onClick = { isAddingNew = true },
-            containerColor = Color(0xFF38BDF8),
-            contentColor = Color(0xFF0F172A),
+            containerColor = Color(0xFF08DAC9),
+            contentColor = Color(0xFF04201D),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 80.dp)
@@ -239,9 +239,9 @@ fun PhraseDialog(
             Button(
                 onClick = { onConfirm(text.trim()) },
                 enabled = guardrailError == null && text.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9))
             ) {
-                Text("Save", color = Color(0xFF0F172A))
+                Text("Save", color = Color(0xFF04201D), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {

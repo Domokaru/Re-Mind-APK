@@ -12,8 +12,8 @@ export type ThemeMode = 'DARK' | 'LIGHT';
 export const DarkBackground = '#0B0F19';
 export const DarkSurface = '#111827';
 export const DarkSurfaceVariant = '#1E293B';
-export const DarkPrimary = '#38BDF8';
-export const DarkOnPrimary = '#0F172A';
+export const DarkPrimary = '#08dac9';
+export const DarkOnPrimary = '#04201d';
 export const DarkTextPrimary = '#F8FAFC';
 export const DarkTextSecondary = '#94A3B8';
 
@@ -21,7 +21,7 @@ export const DarkTextSecondary = '#94A3B8';
 export const LightBackground = '#F8FAFC';
 export const LightSurface = '#FFFFFF';
 export const LightSurfaceVariant = '#F1F5F9';
-export const LightPrimary = '#0284C7';
+export const LightPrimary = '#069689';
 export const LightOnPrimary = '#FFFFFF';
 export const LightTextPrimary = '#0F172A';
 export const LightTextSecondary = '#64748B';
@@ -86,7 +86,7 @@ export function registerCustomBucket(bucket: BucketMetadata) {
  */
 export function getBucketColor(bucket: string, isDark: boolean = true): string {
   const meta = GROUP_BUCKETS[bucket];
-  if (!meta) return isDark ? '#38BDF8' : '#0284C7';
+  if (!meta) return isDark ? '#08dac9' : '#069689';
   return isDark ? meta.darkColorHex : meta.lightColorHex;
 }
 

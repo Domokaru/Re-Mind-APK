@@ -317,9 +317,9 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = Color(0xFF0F172A),
-                                        selectedTextColor = Color(0xFF38BDF8),
-                                        indicatorColor = Color(0xFF38BDF8),
+                                        selectedIconColor = Color(0xFF04201D),
+                                        selectedTextColor = Color(0xFF08DAC9),
+                                        indicatorColor = Color(0xFF08DAC9),
                                         unselectedIconColor = Color(0xFF94A3B8),
                                         unselectedTextColor = Color(0xFF94A3B8)
                                     )

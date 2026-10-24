@@ -50,7 +50,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => setActiveTab('UPCOMING')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'UPCOMING'
-              ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm'
+              ? 'bg-white dark:bg-slate-800 text-[#08dac9] shadow-sm'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -60,7 +60,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => setActiveTab('HISTORY')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'HISTORY'
-              ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm'
+              ? 'bg-white dark:bg-slate-800 text-[#08dac9] shadow-sm'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -93,12 +93,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#08dac9] transition-colors">
                           {log.contactDisplayName}
                         </h4>
                         <BucketBadge bucket={log.bucket} />
                       </div>
-                      <div className="text-xs text-sky-600 dark:text-sky-400 font-medium flex items-center gap-1 mt-0.5">
+                      <div className="text-xs text-[#08dac9] font-medium flex items-center gap-1 mt-0.5">
                         <Clock className="w-3.5 h-3.5" />
                         <span>{formatScheduledTime(log.scheduledEpochMillis)}</span>
                       </div>
@@ -129,7 +129,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {upcomingMessages.length > 10 && (
             <button
               onClick={() => setShowAllUpcoming(!showAllUpcoming)}
-              className="w-full py-2.5 text-xs font-semibold text-sky-600 dark:text-sky-400 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+              className="w-full py-2.5 text-xs font-semibold text-[#08dac9] bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
             >
               {showAllUpcoming ? 'Show Less' : `Show All Upcoming (${upcomingMessages.length})`}
             </button>
@@ -209,7 +209,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {historyMessages.length > 10 && (
             <button
               onClick={() => setShowAllHistory(!showAllHistory)}
-              className="w-full py-2.5 text-xs font-semibold text-sky-600 dark:text-sky-400 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+              className="w-full py-2.5 text-xs font-semibold text-[#08dac9] bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
             >
               {showAllHistory ? 'Show Less' : `Show All History (${historyMessages.length})`}
             </button>

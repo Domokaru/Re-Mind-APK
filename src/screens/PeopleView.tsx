@@ -94,7 +94,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       {/* Top Controls: Full-Width Filter Pill */}
       <div className="w-full">
         <div className="relative w-full flex items-center bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-full px-4 py-2.5 shadow-sm transition-colors">
-          <Filter className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0 mr-2.5" />
+          <Filter className="w-4 h-4 text-[#08dac9] shrink-0 mr-2.5" />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -181,7 +181,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                       {contact.isActive ? 'Active' : 'Paused'}
                     </span>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                      <ChevronUp className="w-4 h-4 text-[#08dac9]" />
                     ) : (
                       <ChevronDown className="w-4 h-4 text-slate-400" />
                     )}
@@ -204,7 +204,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           }}
                           className={`w-10 h-5 rounded-full transition-colors relative p-0.5 ${
                             contact.isActive
-                              ? 'bg-sky-500 dark:bg-sky-400'
+                              ? 'bg-[#08dac9]'
                               : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                           }`}
                         >
@@ -217,7 +217,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-xs font-medium text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                    <div className="text-xs font-medium text-[#08dac9] flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 shrink-0" />
                       <span>{getRecurrenceLabel(contact)}</span>
                     </div>
@@ -270,7 +270,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       {/* Add Contact Button */}
       <button
         onClick={onAddNewContact}
-        className="w-full py-3 bg-sky-500 hover:bg-sky-400 dark:bg-sky-400 dark:hover:bg-sky-300 text-white dark:text-slate-900 font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/10 transition-all active:scale-[0.99]"
+        className="w-full py-3 bg-[#08dac9] hover:bg-[#07c2b3] text-[#04201d] font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-[#08dac9]/20 transition-all active:scale-[0.99]"
       >
         <UserPlus className="w-4 h-4" />
         <span>Add Connection Schedule</span>

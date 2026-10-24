@@ -212,7 +212,7 @@ export const CreateBucketModal: React.FC<CreateBucketModalProps> = ({
               value={initialPhrase}
               onChange={(e) => handlePhraseChange(e.target.value, allowsLoveWord)}
               placeholder="e.g. Hope your week is going great! Thinking of you."
-              className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 resize-none"
+              className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#08dac9] resize-none"
             />
             {phraseError && (
               <div className="flex items-center gap-1.5 text-xs text-rose-500 mt-1">
@@ -234,7 +234,7 @@ export const CreateBucketModal: React.FC<CreateBucketModalProps> = ({
             <button
               type="submit"
               disabled={!displayName.trim() || !!phraseError}
-              className="px-5 py-2 text-xs font-bold text-white bg-sky-500 hover:bg-sky-600 dark:bg-sky-400 dark:text-slate-900 dark:hover:bg-sky-300 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              className="px-5 py-2 text-xs font-bold text-[#04201d] bg-[#08dac9] hover:bg-[#07c2b3] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               Create Group
             </button>

@@ -99,7 +99,7 @@ fun PeopleScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                            .background(if (isSelected) Color(0xFF08DAC9) else Color(0xFF1E293B))
                             .clickable { selectedFilter = filter }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
@@ -107,7 +107,7 @@ fun PeopleScreen(
                             text = filter,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                            color = if (isSelected) Color(0xFF04201D) else Color(0xFF94A3B8)
                         )
                     }
                 }
@@ -146,8 +146,8 @@ fun PeopleScreen(
         // Add Person FAB
         FloatingActionButton(
             onClick = { isAddingNew = true },
-            containerColor = Color(0xFF38BDF8),
-            contentColor = Color(0xFF0F172A),
+            containerColor = Color(0xFF08DAC9),
+            contentColor = Color(0xFF04201D),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 80.dp)
@@ -275,7 +275,7 @@ fun ContactScheduleCard(
                     text = recurrenceSummary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF38BDF8)
+                    color = Color(0xFF08DAC9)
                 )
 
                 // Warning if paused by monthly verify
@@ -303,6 +303,7 @@ fun ContactScheduleCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onEdit) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Schedule", tint = Color(0xFF94A3B8))
@@ -323,8 +324,8 @@ fun ContactScheduleCard(
                             checked = schedule.isActive,
                             onCheckedChange = onToggleActive,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color(0xFF0F172A),
-                                checkedTrackColor = Color(0xFF38BDF8)
+                                checkedThumbColor = Color(0xFF04201D),
+                                checkedTrackColor = Color(0xFF08DAC9)
                             )
                         )
                     }

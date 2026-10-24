@@ -39,7 +39,12 @@ jobs:
 
       - name: Build Debug & Release APK
         run: |
-          gradle :app:assembleDebug :app:assembleRelease --stacktrace
+          chmod +x gradlew || true
+          if [ -f "./gradlew" ]; then
+            ./gradlew :app:assembleDebug :app:assembleRelease --stacktrace --no-daemon
+          else
+            gradle :app:assembleDebug :app:assembleRelease --stacktrace --no-daemon
+          fi
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4

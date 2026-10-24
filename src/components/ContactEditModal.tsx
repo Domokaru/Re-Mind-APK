@@ -156,10 +156,10 @@ export const ContactEditModal: React.FC<ContactEditModalProps> = ({
           <button
             type="button"
             onClick={handlePickFromPhoneContacts}
-            className="w-full py-2.5 px-4 bg-sky-50 hover:bg-sky-100 dark:bg-sky-500/10 dark:hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.99]"
+            className="w-full py-2.5 px-4 bg-[#08dac9]/10 hover:bg-[#08dac9]/20 text-[#08dac9] border border-[#08dac9]/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.99]"
             title="Pick a contact from your phone"
           >
-            <BookUser className="w-4 h-4 text-sky-500" />
+            <BookUser className="w-4 h-4 text-[#08dac9]" />
             <span>Pick Contact</span>
           </button>
 
@@ -207,7 +207,7 @@ export const ContactEditModal: React.FC<ContactEditModalProps> = ({
                 <button
                   type="button"
                   onClick={onOpenCreateBucket}
-                  className="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+                  className="text-[11px] font-bold text-[#08dac9] hover:underline flex items-center gap-0.5"
                 >
                   <Plus className="w-3 h-3" />
                   <span>New Group</span>
@@ -226,7 +226,7 @@ export const ContactEditModal: React.FC<ContactEditModalProps> = ({
                     onClick={() => setBucket(b)}
                     className={`py-2 px-1 rounded-lg text-xs font-semibold text-center transition-all ${
                       isSelected
-                        ? 'ring-2 ring-sky-500 shadow-md'
+                        ? 'ring-2 ring-[#08dac9] shadow-md'
                         : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                     style={{
@@ -295,7 +295,7 @@ export const ContactEditModal: React.FC<ContactEditModalProps> = ({
                       onClick={() => toggleDayOfWeek(iso)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                         isChecked
-                          ? 'bg-sky-500 dark:bg-sky-400 text-white dark:text-slate-900'
+                          ? 'bg-[#08dac9] text-[#04201d]'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}
                     >
@@ -400,7 +400,7 @@ export const ContactEditModal: React.FC<ContactEditModalProps> = ({
             </button>
             <button
               type="submit"
-              className="p-2.5 text-white dark:text-slate-900 bg-sky-500 hover:bg-sky-400 dark:bg-sky-400 dark:hover:bg-sky-300 rounded-xl transition-all shadow-md shadow-sky-500/20 flex items-center justify-center"
+              className="p-2.5 text-[#04201d] font-bold bg-[#08dac9] hover:bg-[#07c2b3] rounded-xl transition-all shadow-md shadow-[#08dac9]/20 flex items-center justify-center"
               title="Save Schedule"
               aria-label="Save Schedule"
             >

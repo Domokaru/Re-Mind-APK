@@ -84,7 +84,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* 1. Phrase Pools & Lexical Guardrails Launcher (Pushed from bottom nav) */}
       <div className="p-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#08dac9] flex items-center gap-1.5">
             <Quote className="w-4 h-4" />
             <span>Phrase Pools</span>
           </h3>
@@ -92,14 +92,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={onOpenPhrases}
-          className="w-full p-3.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-slate-700 text-left flex items-center justify-between transition-colors group"
+          className="w-full p-3.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-[#08dac9]/40 text-left flex items-center justify-between transition-colors group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 group-hover:bg-sky-500/20">
+            <div className="p-2 rounded-lg bg-[#08dac9]/10 text-[#08dac9] group-hover:bg-[#08dac9]/20">
               <Quote className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400">
+              <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#08dac9]">
                 Manage Phrase Pools & Rules
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -107,13 +107,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-sky-500 transition-colors" />
+          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#08dac9] transition-colors" />
         </button>
       </div>
 
       {/* 2. Appearance Theme */}
       <div className="p-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-sm">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#08dac9]">
           Appearance Theme
         </h3>
         <div className="grid grid-cols-2 gap-2">
@@ -121,7 +121,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => onToggleTheme('DARK')}
             className={`p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${
               themeMode === 'DARK'
-                ? 'bg-sky-500 dark:bg-sky-400 text-white dark:text-slate-900 shadow-sm'
+                ? 'bg-[#08dac9] text-[#04201d] font-bold shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
             }`}
           >
@@ -132,7 +132,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => onToggleTheme('LIGHT')}
             className={`p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all ${
               themeMode === 'LIGHT'
-                ? 'bg-sky-500 dark:bg-sky-400 text-white dark:text-slate-900 shadow-sm'
+                ? 'bg-[#08dac9] text-[#04201d] font-bold shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
             }`}
           >
@@ -149,7 +149,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 type="button"
                 onClick={onOpenCreateBucket}
-                className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 font-bold text-[11px] transition-colors"
+                className="text-[#08dac9] hover:underline flex items-center gap-1 font-bold text-[11px] transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Group</span>
@@ -189,7 +189,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* 3. Global Automation Controls */}
       <div className="p-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-sm">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#08dac9]">
           Automation Controls
         </h3>
 
@@ -225,9 +225,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* 5. Data Backup & Recovery */}
+      {/* 4. Data Backup & Recovery */}
       <div className="p-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-sm">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#08dac9]">
           Offline & Cloud Backup
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -238,11 +238,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={handleExportJson}
             className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
           >
-            <Download className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <Download className="w-4 h-4 text-[#08dac9]" />
             <span>Export JSON</span>
           </button>
           <label className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center">
-            <Upload className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <Upload className="w-4 h-4 text-[#08dac9]" />
             <span>Import JSON</span>
             <input
               type="file"

@@ -35,7 +35,7 @@ export const PhrasesView: React.FC<PhrasesViewProps> = ({
         <div className="flex items-center justify-between pb-1">
           <button
             onClick={onBackToSettings}
-            className="flex items-center gap-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline"
+            className="flex items-center gap-1.5 text-xs font-bold text-[#08dac9] hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Settings</span>
@@ -60,7 +60,7 @@ export const PhrasesView: React.FC<PhrasesViewProps> = ({
               onClick={() => setSelectedBucket(b)}
               className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 isSelected
-                  ? 'shadow-sm ring-2 ring-sky-400'
+                  ? 'shadow-sm ring-2 ring-[#08dac9]'
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
               }`}
               style={{
@@ -86,7 +86,7 @@ export const PhrasesView: React.FC<PhrasesViewProps> = ({
           <button
             type="button"
             onClick={onOpenCreateBucket}
-            className="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 border border-dashed border-sky-300 dark:border-sky-500/40 flex items-center gap-1.5 transition-colors shrink-0"
+            className="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#08dac9]/10 text-[#08dac9] hover:bg-[#08dac9]/20 border border-dashed border-[#08dac9]/40 flex items-center gap-1.5 transition-colors shrink-0"
             title="Create a new relationship group bucket"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -143,7 +143,7 @@ export const PhrasesView: React.FC<PhrasesViewProps> = ({
       {/* Add Phrase Button */}
       <button
         onClick={() => onAddNewPhrase(selectedBucket)}
-        className="w-full py-3 bg-sky-500 hover:bg-sky-400 dark:bg-sky-400 dark:hover:bg-sky-300 text-white dark:text-slate-900 font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/10 transition-all active:scale-[0.99]"
+        className="w-full py-3 bg-[#08dac9] hover:bg-[#07c2b3] text-[#04201d] font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-[#08dac9]/20 transition-all active:scale-[0.99]"
       >
         <Plus className="w-4 h-4" />
         <span>Add Phrase to {currentMeta.displayName} Pool</span>

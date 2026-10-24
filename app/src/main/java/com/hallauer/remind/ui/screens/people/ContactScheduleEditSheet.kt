@@ -152,22 +152,22 @@ fun ContactScheduleEditSheet(
                     .fillMaxWidth()
                     .height(44.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0284C7).copy(alpha = 0.2f),
-                    contentColor = Color(0xFF38BDF8)
+                    containerColor = Color(0xFF08DAC9).copy(alpha = 0.2f),
+                    contentColor = Color(0xFF08DAC9)
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.ContactPhone,
                     contentDescription = "Pick Contact",
-                    tint = Color(0xFF38BDF8)
+                    tint = Color(0xFF08DAC9)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Pick Contact",
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
-                    color = Color(0xFF38BDF8)
+                    color = Color(0xFF08DAC9)
                 )
             }
 
@@ -251,7 +251,7 @@ fun ContactScheduleEditSheet(
                         RadioButton(
                             selected = isSelected,
                             onClick = { recurrenceType = type },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF38BDF8))
+                            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF08DAC9))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -297,7 +297,7 @@ fun ContactScheduleEditSheet(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isChecked) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                                    .background(if (isChecked) Color(0xFF08DAC9) else Color(0xFF1E293B))
                                     .clickable {
                                         val next = if (isChecked) currentDays - iso else currentDays + iso
                                         selectedDaysCsv = next.sorted().joinToString(",")
@@ -309,7 +309,7 @@ fun ContactScheduleEditSheet(
                                     text = label,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isChecked) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                                    color = if (isChecked) Color(0xFF04201D) else Color(0xFF94A3B8)
                                 )
                             }
                         }
@@ -415,7 +415,7 @@ fun ContactScheduleEditSheet(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(if (timeMode == TimeMode.EXACT_TIME) Color(0xFF0284C7).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                        .background(if (timeMode == TimeMode.EXACT_TIME) Color(0xFF08DAC9).copy(alpha = 0.25f) else Color(0xFF1E293B))
                         .clickable { timeMode = TimeMode.EXACT_TIME }
                         .padding(10.dp),
                     contentAlignment = Alignment.Center
@@ -424,7 +424,7 @@ fun ContactScheduleEditSheet(
                         text = "Exact Time",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (timeMode == TimeMode.EXACT_TIME) Color(0xFF38BDF8) else Color(0xFF94A3B8)
+                        color = if (timeMode == TimeMode.EXACT_TIME) Color(0xFF08DAC9) else Color(0xFF94A3B8)
                     )
                 }
 
@@ -433,7 +433,7 @@ fun ContactScheduleEditSheet(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF0284C7).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                        .background(if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF08DAC9).copy(alpha = 0.25f) else Color(0xFF1E293B))
                         .clickable { timeMode = TimeMode.RANDOM_WINDOW_1HR }
                         .padding(10.dp),
                     contentAlignment = Alignment.Center
@@ -442,7 +442,7 @@ fun ContactScheduleEditSheet(
                         text = "1-Hour Random Window",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF38BDF8) else Color(0xFF94A3B8)
+                        color = if (timeMode == TimeMode.RANDOM_WINDOW_1HR) Color(0xFF08DAC9) else Color(0xFF94A3B8)
                     )
                 }
             }
@@ -497,13 +497,13 @@ fun ContactScheduleEditSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
+                        .background(Color(0xFF08DAC9).copy(alpha = 0.15f))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccessTime,
                         contentDescription = "Clock",
-                        tint = Color(0xFF38BDF8),
+                        tint = Color(0xFF08DAC9),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -511,7 +511,7 @@ fun ContactScheduleEditSheet(
                         text = "Set Clock",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF38BDF8)
+                        color = Color(0xFF08DAC9)
                     )
                 }
             }
@@ -542,7 +542,7 @@ fun ContactScheduleEditSheet(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                            .background(if (isSelected) Color(0xFF08DAC9) else Color(0xFF1E293B))
                             .clickable { targetHour = hour }
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -551,7 +551,7 @@ fun ContactScheduleEditSheet(
                             text = label,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                            color = if (isSelected) Color(0xFF04201D) else Color(0xFF94A3B8)
                         )
                     }
                 }
@@ -580,7 +580,7 @@ fun ContactScheduleEditSheet(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) Color(0xFF38BDF8) else Color(0xFF1E293B))
+                                .background(if (isSelected) Color(0xFF08DAC9) else Color(0xFF1E293B))
                                 .clickable { targetMinute = min }
                                 .padding(vertical = 6.dp),
                             contentAlignment = Alignment.Center
@@ -589,7 +589,7 @@ fun ContactScheduleEditSheet(
                                 text = label,
                                 fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                                color = if (isSelected) Color(0xFF04201D) else Color(0xFF94A3B8)
                             )
                         }
                     }
@@ -652,12 +652,12 @@ fun ContactScheduleEditSheet(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSaveEnabled) Color(0xFF38BDF8) else Color(0xFF334155))
+                        .background(if (isSaveEnabled) Color(0xFF08DAC9) else Color(0xFF334155))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Save,
                         contentDescription = "Save Schedule",
-                        tint = if (isSaveEnabled) Color(0xFF0F172A) else Color(0xFF64748B)
+                        tint = if (isSaveEnabled) Color(0xFF04201D) else Color(0xFF64748B)
                     )
                 }
             }

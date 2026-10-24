@@ -112,7 +112,7 @@ export const UpcomingActionSheet: React.FC<UpcomingActionSheetProps> = ({
                 value={editText}
                 onChange={(e) => handleTextChange(e.target.value)}
                 rows={3}
-                className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
+                className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#08dac9]"
               />
               {errorMsg && (
                 <div className="flex items-center gap-1.5 text-xs text-rose-500 font-medium">
@@ -130,7 +130,7 @@ export const UpcomingActionSheet: React.FC<UpcomingActionSheetProps> = ({
                 <button
                   onClick={handleSaveText}
                   disabled={!!errorMsg || !editText.trim()}
-                  className="px-3 py-1.5 text-xs font-bold text-white dark:text-slate-900 bg-sky-500 dark:bg-sky-400 disabled:opacity-40 rounded-lg shadow-sm"
+                  className="px-3 py-1.5 text-xs font-bold text-[#04201d] bg-[#08dac9] hover:bg-[#07c2b3] disabled:opacity-40 rounded-lg shadow-sm"
                 >
                   Save Text
                 </button>
@@ -151,7 +151,7 @@ export const UpcomingActionSheet: React.FC<UpcomingActionSheetProps> = ({
         {/* Reschedule Drawer */}
         {isRescheduling && (
           <div className="p-3 bg-slate-50 dark:bg-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-700 mb-4 space-y-3">
-            <h3 className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-[#08dac9] uppercase tracking-wider">
               Reschedule Time (7:00 AM - 10:59 PM Window)
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -196,7 +196,7 @@ export const UpcomingActionSheet: React.FC<UpcomingActionSheetProps> = ({
               </button>
               <button
                 onClick={handleConfirmReschedule}
-                className="px-3 py-1.5 text-xs font-bold text-white bg-sky-500 rounded-lg"
+                className="px-3 py-1.5 text-xs font-bold text-[#04201d] bg-[#08dac9] hover:bg-[#07c2b3] rounded-lg"
               >
                 Apply New Time
               </button>
@@ -244,7 +244,7 @@ export const UpcomingActionSheet: React.FC<UpcomingActionSheetProps> = ({
             }}
             className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors text-left group"
           >
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 group-hover:bg-sky-500/20">
+            <div className="p-2 rounded-lg bg-[#08dac9]/10 text-[#08dac9] group-hover:bg-[#08dac9]/20">
               <Send className="w-4 h-4" />
             </div>
             <div>

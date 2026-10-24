@@ -23,12 +23,53 @@ import {
   Phrase,
 } from './types/remind';
 import {
-  Compass,
   Calendar,
   Users,
   Settings,
   AlertTriangle,
 } from 'lucide-react';
+
+// Custom Dashboard Analytics Board Icon inspired by the requested board design
+// Featuring screen board frame, line graph with nodes, pie chart, bar chart, and stat lines
+function DashboardAnalyticsIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* Outer monitor / board display frame */}
+      <rect x="2" y="3" width="20" height="15" rx="2" />
+      {/* Stand base */}
+      <path d="M9 21h6" />
+      <path d="M12 18v3" />
+      
+      {/* Top line graph with 4 node points */}
+      <polyline points="4.5,9.5 7.5,7 10.5,8.5 13.5,6" />
+      <circle cx="4.5" cy="9.5" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="7.5" cy="7" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="10.5" cy="8.5" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="13.5" cy="6" r="0.75" fill="currentColor" stroke="none" />
+      
+      {/* Top right stat list rows */}
+      <line x1="16" y1="6.5" x2="19.5" y2="6.5" />
+      <line x1="16" y1="9" x2="18.5" y2="9" />
+
+      {/* Bottom left pie chart circle with radial slice */}
+      <circle cx="7" cy="14" r="2.2" />
+      <path d="M7 11.8v2.2l1.5 1.2" />
+
+      {/* Bottom right bar chart columns */}
+      <line x1="13" y1="15.5" x2="13" y2="13" />
+      <line x1="15.5" y1="15.5" x2="15.5" y2="11.5" />
+      <line x1="18" y1="15.5" x2="18" y2="14" />
+    </svg>
+  );
+}
 
 type BottomTab = 'DASHBOARD' | 'CALENDAR' | 'PEOPLE' | 'PHRASES' | 'SETTINGS';
 
@@ -58,13 +99,13 @@ export default function App() {
     }
   }, [store.themeMode]);
 
-    return (
+  return (
     <div
       className={`min-h-screen ${
         store.themeMode === 'DARK'
           ? 'bg-[#0B0F19] text-slate-100 dark'
           : 'bg-[#F8FAFC] text-slate-900'
-      } flex flex-col antialiased selection:bg-sky-500/30 font-['Plus_Jakarta_Sans',sans-serif]`}
+      } flex flex-col antialiased selection:bg-[#08dac9]/30 font-['Plus_Jakarta_Sans',sans-serif]`}
     >
       {/* Global Vacation Mode Banner */}
       {store.isGlobalPauseEnabled && (
@@ -161,20 +202,20 @@ export default function App() {
             onClick={() => setActiveTab('DASHBOARD')}
             className={`flex items-center justify-center py-2 rounded-xl transition-all ${
               activeTab === 'DASHBOARD'
-                ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 font-bold'
+                ? 'text-[#08dac9] bg-[#08dac9]/15 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
             title="Dashboard"
             aria-label="Dashboard"
           >
-            <Compass className="w-5 h-5" />
+            <DashboardAnalyticsIcon className="w-5 h-5" />
           </button>
 
           <button
             onClick={() => setActiveTab('CALENDAR')}
             className={`flex items-center justify-center py-2 rounded-xl transition-all ${
               activeTab === 'CALENDAR'
-                ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 font-bold'
+                ? 'text-[#08dac9] bg-[#08dac9]/15 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
             title="Calendar"
@@ -187,7 +228,7 @@ export default function App() {
             onClick={() => setActiveTab('PEOPLE')}
             className={`flex items-center justify-center py-2 rounded-xl transition-all ${
               activeTab === 'PEOPLE'
-                ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 font-bold'
+                ? 'text-[#08dac9] bg-[#08dac9]/15 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
             title="People"
@@ -200,7 +241,7 @@ export default function App() {
             onClick={() => setActiveTab('SETTINGS')}
             className={`flex items-center justify-center py-2 rounded-xl transition-all ${
               activeTab === 'SETTINGS' || activeTab === 'PHRASES'
-                ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 font-bold'
+                ? 'text-[#08dac9] bg-[#08dac9]/15 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
             title="Settings"
