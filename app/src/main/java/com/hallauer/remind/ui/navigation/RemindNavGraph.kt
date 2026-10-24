@@ -76,7 +76,7 @@ val DashboardAnalyticsIcon: ImageVector by lazy {
             lineTo(19.5f, 15.5f)
         }
 
-        // Pie chart on lower left
+        // Pie chart on lower left (using safe cubic curves for rendering stability)
         path(
             stroke = SolidColor(Color.White),
             strokeLineWidth = 1.6f,
@@ -84,8 +84,11 @@ val DashboardAnalyticsIcon: ImageVector by lazy {
             strokeLineJoin = StrokeJoin.Round
         ) {
             moveTo(7f, 12.5f)
-            arcTo(4f, 4f, 0f, isMoreThanHalf = true, isPositiveArc = true, 7f, 20.5f)
-            arcTo(4f, 4f, 0f, isMoreThanHalf = true, isPositiveArc = true, 7f, 12.5f)
+            cubicTo(9.2f, 12.5f, 11f, 14.3f, 11f, 16.5f)
+            cubicTo(11f, 18.7f, 9.2f, 20.5f, 7f, 20.5f)
+            cubicTo(4.8f, 20.5f, 3f, 18.7f, 3f, 16.5f)
+            cubicTo(3f, 14.3f, 4.8f, 12.5f, 7f, 12.5f)
+            close()
             moveTo(7f, 16.5f)
             lineTo(7f, 12.5f)
             moveTo(7f, 16.5f)

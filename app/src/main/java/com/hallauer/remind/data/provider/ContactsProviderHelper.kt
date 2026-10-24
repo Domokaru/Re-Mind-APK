@@ -44,37 +44,39 @@ class ContactsProviderHelper(private val context: Context) {
             ContactsContract.Contacts.PHOTO_URI
         )
 
-        val cursor = contentResolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC"
-        )
+        runCatching {
+            val cursor = contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC"
+            )
 
-        cursor?.use { c ->
-            val idIdx = c.getColumnIndex(ContactsContract.Contacts._ID)
-            val lookupIdx = c.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
-            val nameIdx = c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
-            val photoIdx = c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+            cursor?.use { c ->
+                val idIdx = c.getColumnIndex(ContactsContract.Contacts._ID)
+                val lookupIdx = c.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
+                val nameIdx = c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
+                val photoIdx = c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
 
-            while (c.moveToNext()) {
-                val id = c.getLong(idIdx)
-                val lookup = c.getString(lookupIdx) ?: ""
-                val name = c.getString(nameIdx) ?: "Unknown"
-                val photo = c.getString(photoIdx)
+                while (c.moveToNext()) {
+                    val id = c.getLong(idIdx)
+                    val lookup = c.getString(lookupIdx) ?: ""
+                    val name = c.getString(nameIdx) ?: "Unknown"
+                    val photo = c.getString(photoIdx)
 
-                val numbers = queryPhoneNumbersForContact(id)
-                if (numbers.isNotEmpty()) {
-                    result.add(
-                        PickedContactInfo(
-                            contactId = id,
-                            lookupKey = lookup,
-                            displayName = name,
-                            photoUri = photo,
-                            phoneNumbers = numbers
+                    val numbers = queryPhoneNumbersForContact(id)
+                    if (numbers.isNotEmpty()) {
+                        result.add(
+                            PickedContactInfo(
+                                contactId = id,
+                                lookupKey = lookup,
+                                displayName = name,
+                                photoUri = photo,
+                                phoneNumbers = numbers
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -94,40 +96,42 @@ class ContactsProviderHelper(private val context: Context) {
             ContactsContract.CommonDataKinds.Phone.IS_PRIMARY
         )
 
-        val cursor = context.contentResolver.query(
-            phoneUri,
-            projection,
-            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-            arrayOf(contactId.toString()),
-            null
-        )
+        runCatching {
+            val cursor = context.contentResolver.query(
+                phoneUri,
+                projection,
+                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                arrayOf(contactId.toString()),
+                null
+            )
 
-        cursor?.use { c ->
-            val numIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-            val typeIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)
-            val labelIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LABEL)
-            val primaryIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.IS_PRIMARY)
+            cursor?.use { c ->
+                val numIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val typeIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)
+                val labelIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LABEL)
+                val primaryIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.IS_PRIMARY)
 
-            while (c.moveToNext()) {
-                val rawNumber = c.getString(numIdx) ?: continue
-                val type = c.getInt(typeIdx)
-                val label = c.getString(labelIdx)
-                val isPrimary = c.getInt(primaryIdx) == 1
+                while (c.moveToNext()) {
+                    val rawNumber = c.getString(numIdx) ?: continue
+                    val type = c.getInt(typeIdx)
+                    val label = c.getString(labelIdx)
+                    val isPrimary = c.getInt(primaryIdx) == 1
 
-                val typeLabel = ContactsContract.CommonDataKinds.Phone.getTypeLabel(
-                    context.resources,
-                    type,
-                    label ?: "Other"
-                ).toString()
+                    val typeLabel = ContactsContract.CommonDataKinds.Phone.getTypeLabel(
+                        context.resources,
+                        type,
+                        label ?: "Other"
+                    ).toString()
 
-                list.add(
-                    ContactPhoneNumber(
-                        rawNumber = rawNumber,
-                        normalizedNumber = PhoneNumberNormalizer.normalize(rawNumber),
-                        typeLabel = typeLabel,
-                        isPrimary = isPrimary || type == ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+                    list.add(
+                        ContactPhoneNumber(
+                            rawNumber = rawNumber,
+                            normalizedNumber = PhoneNumberNormalizer.normalize(rawNumber),
+                            typeLabel = typeLabel,
+                            isPrimary = isPrimary || type == ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -142,34 +146,36 @@ class ContactsProviderHelper(private val context: Context) {
      * Verifies if a stored lookupKey still resolves to a contact with the stored normalized number.
      */
     fun verifyContactNumber(lookupKey: String, expectedNormalizedNumber: String): VerificationResult {
-        val lookupUri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey)
-        val cursor = context.contentResolver.query(
-            lookupUri,
-            arrayOf(ContactsContract.Contacts._ID),
-            null,
-            null,
-            null
-        )
+        return runCatching {
+            val lookupUri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey)
+            val cursor = context.contentResolver.query(
+                lookupUri,
+                arrayOf(ContactsContract.Contacts._ID),
+                null,
+                null,
+                null
+            )
 
-        var foundContactId: Long? = null
-        cursor?.use { c ->
-            if (c.moveToFirst()) {
-                foundContactId = c.getLong(0)
+            var foundContactId: Long? = null
+            cursor?.use { c ->
+                if (c.moveToFirst()) {
+                    foundContactId = c.getLong(0)
+                }
             }
-        }
 
-        if (foundContactId == null) {
-            return VerificationResult.ContactNotFound
-        }
+            if (foundContactId == null) {
+                return@runCatching VerificationResult.ContactNotFound
+            }
 
-        val currentNumbers = queryPhoneNumbersForContact(foundContactId!!)
-        val hasMatch = currentNumbers.any { PhoneNumberNormalizer.areEqual(it.normalizedNumber, expectedNormalizedNumber) }
+            val currentNumbers = queryPhoneNumbersForContact(foundContactId!!)
+            val hasMatch = currentNumbers.any { PhoneNumberNormalizer.areEqual(it.normalizedNumber, expectedNormalizedNumber) }
 
-        return if (hasMatch) {
-            VerificationResult.Valid
-        } else {
-            VerificationResult.NumberChangedOrRemoved(currentNumbers)
-        }
+            if (hasMatch) {
+                VerificationResult.Valid
+            } else {
+                VerificationResult.NumberChangedOrRemoved(currentNumbers)
+            }
+        }.getOrDefault(VerificationResult.Valid)
     }
 
     sealed class VerificationResult {

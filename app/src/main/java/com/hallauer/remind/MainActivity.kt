@@ -1,7 +1,9 @@
 package com.hallauer.remind
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -9,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,6 +93,23 @@ class MainActivity : ComponentActivity() {
                 )
             }
             val settingsDataStore = remember { SettingsDataStore(applicationContext) }
+
+            // Automatic startup runtime permissions requester for SMS, Contacts, and Notifications
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestMultiplePermissions()
+            ) { /* Permissions results handled seamlessly */ }
+
+            LaunchedEffect(Unit) {
+                val permissions = mutableListOf(
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.READ_CONTACTS
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                permissionLauncher.launch(permissions.toTypedArray())
+            }
 
             val themeMode by settingsDataStore.themeModeFlow.collectAsState(initial = ThemeMode.DARK)
             val isGlobalPause by settingsDataStore.isGlobalPauseEnabledFlow.collectAsState(initial = false)
