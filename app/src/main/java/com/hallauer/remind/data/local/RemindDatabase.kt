@@ -5,8 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.sqlite.db.SupportSQLiteDatabase
-import com.hallauer.remind.core.constants.SeedPhrases
 import com.hallauer.remind.data.local.dao.ContactScheduleDao
 import com.hallauer.remind.data.local.dao.MessageLogDao
 import com.hallauer.remind.data.local.dao.PhraseDao
@@ -14,8 +12,6 @@ import com.hallauer.remind.data.local.entity.ContactScheduleEntity
 import com.hallauer.remind.data.local.entity.MessageLogEntity
 import com.hallauer.remind.data.local.entity.PhraseEntity
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(
     entities = [
@@ -23,7 +19,7 @@ import kotlinx.coroutines.launch
         PhraseEntity::class,
         MessageLogEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -37,34 +33,35 @@ abstract class RemindDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: RemindDatabase? = null
 
-        fun getInstance(context: Context, scope: CoroutineScope): RemindDatabase {
+        fun getInstance(context: Context, scope: CoroutineScope? = null): RemindDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+            }
+        }
+
+        private fun buildDatabase(context: Context): RemindDatabase {
+            return try {
+                Room.databaseBuilder(
                     context.applicationContext,
                     RemindDatabase::class.java,
                     "remind_database.db"
                 )
-                    .addCallback(object : Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            // Populate 50 initial seed phrases in the background
-                            scope.launch(Dispatchers.IO) {
-                                val database = getInstance(context, scope)
-                                val initialPhrases = SeedPhrases.ALL_50_PHRASES.map { seed ->
-                                    PhraseEntity(
-                                        bucket = seed.bucket,
-                                        text = seed.text,
-                                        isSeed = true
-                                    )
-                                }
-                                database.phraseDao().insertPhrases(initialPhrases)
-                            }
-                        }
-                    })
                     .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigrationOnDowngrade()
                     .build()
-                INSTANCE = instance
-                instance
+            } catch (t: Throwable) {
+                android.util.Log.e("RemindDatabase", "Database creation failure. Clearing stale database file.", t)
+                try {
+                    context.applicationContext.deleteDatabase("remind_database.db")
+                } catch (_: Throwable) {}
+                Room.databaseBuilder(
+                    context.applicationContext,
+                    RemindDatabase::class.java,
+                    "remind_database.db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigrationOnDowngrade()
+                    .build()
             }
         }
     }

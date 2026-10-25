@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -13,15 +15,26 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -77,13 +90,103 @@ import java.time.YearMonth
 
 class MainActivity : ComponentActivity() {
 
+    private var crashDiagnosticMessage by mutableStateOf<String?>(null)
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Process-wide crash safety logging
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            android.util.Log.e("RemindFatal", "FATAL EXCEPTION on thread ${thread.name}", throwable)
+            runOnUiThread {
+                val stack = throwable.stackTrace.take(6).joinToString("\n") {
+                    "  at ${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})"
+                }
+                crashDiagnosticMessage = "${throwable::class.java.simpleName}: ${throwable.message}\n$stack"
+            }
+        }
+
+        // Main thread looper protection: intercepts unhandled exceptions to prevent instant process death
+        Handler(Looper.getMainLooper()).post {
+            while (true) {
+                try {
+                    Looper.loop()
+                } catch (t: Throwable) {
+                    android.util.Log.e("RemindCrashShield", "Intercepted UI exception: ${t.message}", t)
+                    runOnUiThread {
+                        val stack = t.stackTrace.take(6).joinToString("\n") {
+                            "  at ${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})"
+                        }
+                        crashDiagnosticMessage = "${t::class.java.simpleName}: ${t.message}\n$stack"
+                    }
+                }
+            }
+        }
+
         setContent {
+            val diagnosticError = crashDiagnosticMessage
+            if (diagnosticError != null) {
+                ReMINDTheme(darkTheme = true) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF0B0F19))
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Re:MIND Diagnostic Recovery",
+                                    color = Color(0xFF08DAC9),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = diagnosticError,
+                                    color = Color(0xFFE2E8F0),
+                                    fontSize = 12.sp
+                                )
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Button(
+                                        onClick = {
+                                            crashDiagnosticMessage = null
+                                            recreate()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9))
+                                    ) {
+                                        Text("Retry", color = Color(0xFF04201D), fontWeight = FontWeight.Bold)
+                                    }
+                                    Button(
+                                        onClick = {
+                                            runCatching { applicationContext.deleteDatabase("remind_database.db") }
+                                            crashDiagnosticMessage = null
+                                            recreate()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE11D48))
+                                    ) {
+                                        Text("Reset DB & Restart", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return@setContent
+            }
+
             val scope = rememberCoroutineScope()
-            val database = remember { RemindDatabase.getInstance(applicationContext, scope) }
+            val database = remember { RemindDatabase.getInstance(applicationContext) }
             val repository = remember {
                 RemindRepository(
                     context = applicationContext,
@@ -100,15 +203,17 @@ class MainActivity : ComponentActivity() {
             ) { _ -> /* Permissions results handled seamlessly */ }
 
             LaunchedEffect(Unit) {
-                val permissions = mutableListOf(
-                    Manifest.permission.SEND_SMS,
-                    Manifest.permission.READ_SMS,
-                    Manifest.permission.READ_CONTACTS
-                )
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                runCatching {
+                    val permissions = mutableListOf(
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.READ_SMS,
+                        Manifest.permission.READ_CONTACTS
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    permissionLauncher.launch(permissions.toTypedArray())
                 }
-                permissionLauncher.launch(permissions.toTypedArray())
             }
 
             val themeMode by settingsDataStore.themeModeFlow.collectAsState(initial = ThemeMode.DARK)

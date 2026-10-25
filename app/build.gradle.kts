@@ -85,10 +85,5 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
 
-    // Fault-tolerant Firebase BoM (compile-safe offline)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
-
     debugImplementation(libs.androidx.ui.tooling)
 }

@@ -6,13 +6,16 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.hallauer.remind.core.constants.AppConstants
+import com.hallauer.remind.core.constants.SeedPhrases
 import com.hallauer.remind.core.notifications.SilentStatusNotifier
 import com.hallauer.remind.data.local.RemindDatabase
+import com.hallauer.remind.data.local.entity.PhraseEntity
 import com.hallauer.remind.service.worker.MonthlyContactVerifyWorker
 import com.hallauer.remind.service.worker.WeeklyFirebaseBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class RemindApplication : Application() {
@@ -22,22 +25,35 @@ class RemindApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // 1. Initialize silent notification channels
         try {
-            // 1. Initialize silent notification channels
             SilentStatusNotifier.initNotificationChannels(this)
         } catch (e: Throwable) {
             Log.e("RemindApp", "Error initializing notification channels", e)
         }
 
-        try {
-            // 2. Initialize Room Database and seed 50 phrases
-            RemindDatabase.getInstance(this, applicationScope)
-        } catch (e: Throwable) {
-            Log.e("RemindApp", "Error initializing Room Database", e)
+        // 2. Initialize Room Database and seed 50 phrases safely in background
+        applicationScope.launch {
+            try {
+                val db = RemindDatabase.getInstance(this@RemindApplication)
+                if (db.phraseDao().getPhraseCount() == 0) {
+                    val initialPhrases = SeedPhrases.ALL_50_PHRASES.map { seed ->
+                        PhraseEntity(
+                            bucket = seed.bucket,
+                            text = seed.text,
+                            isSeed = true
+                        )
+                    }
+                    db.phraseDao().insertPhrases(initialPhrases)
+                    Log.i("RemindApp", "Seeded 50 initial phrases successfully.")
+                }
+            } catch (e: Throwable) {
+                Log.e("RemindApp", "Error during phrase seeding", e)
+            }
         }
 
+        // 3. Schedule Periodic Workers
         try {
-            // 3. Schedule Periodic Workers
             schedulePeriodicBackgroundWorkers()
         } catch (e: Throwable) {
             Log.e("RemindApp", "Error scheduling periodic workers", e)
@@ -48,7 +64,7 @@ class RemindApplication : Application() {
         try {
             val workManager = WorkManager.getInstance(this)
 
-            // Weekly Firebase cloud sync (every 7 days)
+            // Weekly backup worker (every 7 days)
             val weeklyBackupRequest = PeriodicWorkRequestBuilder<WeeklyFirebaseBackupWorker>(7, TimeUnit.DAYS)
                 .addTag(AppConstants.TAG_WEEKLY_BACKUP)
                 .build()

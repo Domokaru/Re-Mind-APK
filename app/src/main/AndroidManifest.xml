@@ -29,12 +29,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ReMIND">
 
-        <!-- Prevent auto-init crash from Firebase ContentProvider when offline or lacking google-services.json -->
-        <provider
-            android:name="com.google.firebase.provider.FirebaseInitProvider"
-            android:authorities="${applicationId}.firebaseinitprovider"
-            tools:node="remove" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
