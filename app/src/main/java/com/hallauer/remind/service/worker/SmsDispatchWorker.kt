@@ -129,9 +129,9 @@ class SmsDispatchWorker(
             return@withContext Result.failure()
         }
 
-        // 6. Dispatch SMS or Send Actionable Notification (Zero-Permission Mode)
+        // 6. Dispatch SMS or Send Actionable Notification (Dual-Engine Mode)
         val dispatcher = SmsDispatcher(appContext)
-        if (dispatcher.hasSendSmsPermission()) {
+        if (dispatcher.canSendSilently()) {
             val dispatchResult = dispatcher.dispatchSms(
                 phoneNumber = schedule.phoneNumber,
                 messageText = pendingLog.messageText,

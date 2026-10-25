@@ -215,6 +215,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Official Android Default SMS App Role Requester (Compliance standard)
+            val defaultSmsRoleLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { _ ->
+                val dispatcher = SmsDispatcher(applicationContext)
+                if (dispatcher.isDefaultSmsApp()) {
+                    Toast.makeText(applicationContext, "Re:MIND is now Default SMS App! Full hands-free background automation enabled.", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(applicationContext, "Operating in Android-compliant Intent Mode (Google Messages).", Toast.LENGTH_LONG).show()
+                }
+            }
+
             LaunchedEffect(Unit) {
                 runCatching {
                     val permissions = mutableListOf(
@@ -400,7 +412,7 @@ class MainActivity : ComponentActivity() {
                     val dispatcher = SmsDispatcher(applicationContext)
                     val sched = schedules.find { it.id == log.contactScheduleId }
 
-                    if (dispatcher.hasSendSmsPermission()) {
+                    if (dispatcher.canSendSilently()) {
                         val res = dispatcher.dispatchSms(
                             phoneNumber = log.contactPhoneNumber,
                             messageText = log.messageText,
@@ -414,7 +426,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     } else {
-                        // Zero-Permission Mode: launch pre-filled messaging app
+                        // Compliant Intent Mode: launch pre-filled messaging app
                         runCatching {
                             val intent = dispatcher.createSendIntent(log.contactPhoneNumber, log.messageText)
                             startActivity(intent)
@@ -429,7 +441,7 @@ class MainActivity : ComponentActivity() {
                     val sentLog = log.copy(
                         status = MessageStatus.SENT,
                         executedEpochMillis = System.currentTimeMillis(),
-                        statusNote = if (dispatcher.hasSendSmsPermission()) "Sent via device SMS" else "Opened in Messages app (Zero-permission mode)"
+                        statusNote = if (dispatcher.canSendSilently()) "Sent via device SMS" else "Opened in Messages app (Intent mode)"
                     )
                     database.messageLogDao().updateLog(sentLog)
 
@@ -605,87 +617,114 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
 
-                                Screen.Settings -> SettingsScreen(
-                                    currentTheme = themeMode,
-                                    isGlobalPauseEnabled = isGlobalPause,
-                                    hasSmsPermission = SmsDispatcher(applicationContext).hasSendSmsPermission(),
-                                    onThemeChanged = { mode ->
-                                        scope.launch { settingsDataStore.setThemeMode(mode) }
-                                    },
-                                    onGlobalPauseToggled = { paused ->
-                                        scope.launch { settingsDataStore.setGlobalPause(paused) }
-                                    },
-                                    onRequestSmsPermission = {
-                                        smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
-                                    },
-                                    onSendTestSms = { phoneNumber ->
-                                        val dispatcher = SmsDispatcher(applicationContext)
-                                        if (dispatcher.hasSendSmsPermission()) {
+                                Screen.Settings -> {
+                                    val dispatcher = remember { SmsDispatcher(applicationContext) }
+                                    SettingsScreen(
+                                        currentTheme = themeMode,
+                                        isGlobalPauseEnabled = isGlobalPause,
+                                        isDefaultSmsApp = dispatcher.isDefaultSmsApp(),
+                                        hasSmsPermission = dispatcher.hasSendSmsPermission(),
+                                        canSendSilently = dispatcher.canSendSilently(),
+                                        onThemeChanged = { mode ->
+                                            scope.launch { settingsDataStore.setThemeMode(mode) }
+                                        },
+                                        onGlobalPauseToggled = { paused ->
+                                            scope.launch { settingsDataStore.setGlobalPause(paused) }
+                                        },
+                                        onRequestDefaultSms = {
+                                            val reqIntent = dispatcher.createRequestDefaultSmsIntent()
+                                            if (reqIntent != null) {
+                                                defaultSmsRoleLauncher.launch(reqIntent)
+                                            } else {
+                                                openDefaultAppsSettings()
+                                            }
+                                        },
+                                        onRequestSmsPermission = {
+                                            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                                        },
+                                        onOpenDefaultAppsSettings = { openDefaultAppsSettings() },
+                                        onSendTestSms = { phoneNumber ->
+                                            if (dispatcher.canSendSilently()) {
+                                                scope.launch(Dispatchers.IO) {
+                                                    val res = dispatcher.dispatchSms(
+                                                        phoneNumber = phoneNumber,
+                                                        messageText = "Re:MIND Carrier Test: Hardware SMS radio is operational.",
+                                                        logId = 999999L
+                                                    )
+                                                    withContext(Dispatchers.Main) {
+                                                        if (res.isSuccess) {
+                                                            Toast.makeText(
+                                                                applicationContext,
+                                                                "Carrier test SMS dispatched successfully to $phoneNumber!",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
+                                                        } else {
+                                                            val err = res.exceptionOrNull()?.message ?: "Radio error"
+                                                            Toast.makeText(
+                                                                applicationContext,
+                                                                "Carrier test SMS failed: $err",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                runCatching {
+                                                    val intent = dispatcher.createSendIntent(
+                                                        phoneNumber = phoneNumber,
+                                                        messageText = "Re:MIND Test: Intent SMS composer is operational."
+                                                    )
+                                                    startActivity(intent)
+                                                    Toast.makeText(applicationContext, "Opened messaging app (Intent mode)", Toast.LENGTH_SHORT).show()
+                                                }.onFailure { err ->
+                                                    Toast.makeText(applicationContext, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                                }
+                                            }
+                                        },
+                                        onExportJsonClicked = {
+                                            exportLauncher.launch("remind_backup_${LocalDate.now()}.json")
+                                        },
+                                        onImportJsonClicked = {
+                                            importLauncher.launch(arrayOf("application/json", "text/*"))
+                                        },
+                                        onSyncFirebaseNow = {
                                             scope.launch(Dispatchers.IO) {
-                                                val res = dispatcher.dispatchSms(
-                                                    phoneNumber = phoneNumber,
-                                                    messageText = "Re:MIND Carrier Test: Hardware SMS radio is operational.",
-                                                    logId = 999999L
-                                                )
+                                                val fb = FirebaseBackupManager(applicationContext)
+                                                val s = database.contactScheduleDao().getAllSchedules()
+                                                val p = database.phraseDao().getAllPhrases()
+                                                val l = database.messageLogDao().getPendingLogs()
+                                                val res = fb.backupData(s, p, l)
                                                 withContext(Dispatchers.Main) {
                                                     if (res.isSuccess) {
-                                                        Toast.makeText(
-                                                            applicationContext,
-                                                            "Carrier test SMS dispatched successfully to $phoneNumber!",
-                                                            Toast.LENGTH_LONG
-                                                        ).show()
+                                                        Toast.makeText(applicationContext, "Cloud backup synced to Firestore!", Toast.LENGTH_LONG).show()
                                                     } else {
-                                                        val err = res.exceptionOrNull()?.message ?: "Radio error"
-                                                        Toast.makeText(
-                                                            applicationContext,
-                                                            "Carrier test SMS failed: $err",
-                                                            Toast.LENGTH_LONG
-                                                        ).show()
+                                                        Toast.makeText(applicationContext, res.exceptionOrNull()?.message ?: "Sync failed (offline)", Toast.LENGTH_LONG).show()
                                                     }
                                                 }
                                             }
-                                        } else {
-                                            runCatching {
-                                                val intent = dispatcher.createSendIntent(
-                                                    phoneNumber = phoneNumber,
-                                                    messageText = "Re:MIND Test: Zero-permission SMS composer is operational."
-                                                )
-                                                startActivity(intent)
-                                                Toast.makeText(applicationContext, "Opened messaging app (Zero-permission mode)", Toast.LENGTH_SHORT).show()
-                                            }.onFailure { err ->
-                                                Toast.makeText(applicationContext, "Error: ${err.message}", Toast.LENGTH_LONG).show()
-                                            }
-                                        }
-                                    },
-                                    onExportJsonClicked = {
-                                        exportLauncher.launch("remind_backup_${LocalDate.now()}.json")
-                                    },
-                                    onImportJsonClicked = {
-                                        importLauncher.launch(arrayOf("application/json", "text/*"))
-                                    },
-                                    onSyncFirebaseNow = {
-                                        scope.launch(Dispatchers.IO) {
-                                            val fb = FirebaseBackupManager(applicationContext)
-                                            val s = database.contactScheduleDao().getAllSchedules()
-                                            val p = database.phraseDao().getAllPhrases()
-                                            val l = database.messageLogDao().getPendingLogs()
-                                            val res = fb.backupData(s, p, l)
-                                            withContext(Dispatchers.Main) {
-                                                if (res.isSuccess) {
-                                                    Toast.makeText(applicationContext, "Cloud backup synced to Firestore!", Toast.LENGTH_LONG).show()
-                                                } else {
-                                                    Toast.makeText(applicationContext, res.exceptionOrNull()?.message ?: "Sync failed (offline)", Toast.LENGTH_LONG).show()
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onOpenAndroidSettings = { openAppInfoSettings() }
-                                )
+                                        },
+                                        onOpenAndroidSettings = { openAppInfoSettings() }
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun openDefaultAppsSettings() {
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            } else {
+                openAppInfoSettings()
+            }
+        }.onFailure {
+            openAppInfoSettings()
         }
     }
 

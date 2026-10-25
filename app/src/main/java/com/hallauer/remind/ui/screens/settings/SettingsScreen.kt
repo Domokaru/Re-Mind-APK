@@ -27,7 +27,9 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SimCard
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,11 +61,15 @@ import com.hallauer.remind.data.local.datastore.ThemeMode
 fun SettingsScreen(
     currentTheme: ThemeMode,
     isGlobalPauseEnabled: Boolean,
+    isDefaultSmsApp: Boolean = false,
     hasSmsPermission: Boolean = false,
+    canSendSilently: Boolean = false,
     onThemeChanged: (ThemeMode) -> Unit,
     onGlobalPauseToggled: (Boolean) -> Unit,
     onSendTestSms: (String) -> Unit = {},
+    onRequestDefaultSms: () -> Unit = {},
     onRequestSmsPermission: () -> Unit = {},
+    onOpenDefaultAppsSettings: () -> Unit = {},
     onExportJsonClicked: () -> Unit = {},
     onImportJsonClicked: () -> Unit = {},
     onSyncFirebaseNow: () -> Unit = {},
@@ -200,11 +206,11 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 3: Android Privacy & SMS Operating Modes
-        SectionTitle(title = "Android Privacy & Dispatch Modes")
+        // Section 3: Android SMS Privacy & Platform Compliance
+        SectionTitle(title = "Android SMS Compliance & Dispatch Modes")
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = if (hasSmsPermission) Color(0xFF111827) else Color(0xFF172033)
+                containerColor = if (canSendSilently) Color(0xFF0F231D) else Color(0xFF172033)
             ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
@@ -214,11 +220,21 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (hasSmsPermission) Color(0xFF065F46) else Color(0xFF0284C7))
+                            .background(
+                                when {
+                                    isDefaultSmsApp -> Color(0xFF059669)
+                                    hasSmsPermission -> Color(0xFF0D9488)
+                                    else -> Color(0xFF0284C7)
+                                }
+                            )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = if (hasSmsPermission) "Direct Silent SMS Active" else "Zero-Permission Mode Active",
+                            text = when {
+                                isDefaultSmsApp -> "Default SMS App (Hands-Free Active)"
+                                hasSmsPermission -> "Direct SIM SMS (Active)"
+                                else -> "Compliant Intent Mode (Active)"
+                            },
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -228,37 +244,57 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                if (hasSmsPermission) {
+                if (isDefaultSmsApp) {
                     Text(
-                        text = "Your device has granted hardware SMS permissions. Re:MIND sends scheduled check-in texts automatically through your carrier SIM in the background.",
+                        text = "Re:MIND is registered as the system Default SMS App under Android platform specifications. All scheduled mindfulness check-ins are sent automatically in the background through your carrier SIM without prompts.",
                         fontSize = 12.sp,
                         color = Color(0xFFE2E8F0),
                         lineHeight = 17.sp
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onOpenDefaultAppsSettings,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF08DAC9), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Manage Default Apps in Android Settings", color = Color.White, fontSize = 12.sp)
+                    }
+                } else if (hasSmsPermission) {
+                    Text(
+                        text = "Hardware SMS permissions are active on this device. Re:MIND dispatches scheduled check-in texts directly through your carrier SIM in the background.",
+                        fontSize = 12.sp,
+                        color = Color(0xFFE2E8F0),
+                        lineHeight = 17.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onRequestDefaultSms,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF04201D), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Set Re:MIND as Default SMS App", color = Color(0xFF04201D), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
                 } else {
                     Text(
-                        text = "Modern Android protects privacy by blocking direct SMS permissions on sideloaded apps. Re:MIND runs reliably without needing any SMS permissions at all!",
+                        text = "Why does Android say SMS is denied? Under Android base software platform rules and Google Play Policy, Android strictly restricts non-default SMS apps from directly sending SMS without user oversight to protect privacy.",
                         fontSize = 12.sp,
                         color = Color(0xFFE2E8F0),
                         lineHeight = 17.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "• Zero-Permission Workflow: When your scheduled check-in time arrives, you receive a high-priority notification. Tapping it opens Google Messages or Samsung Messages with the recipient and phrase pre-filled ready to send with 1 tap.",
+                        text = "• Intent Mode (Official Android Compliance): Re:MIND delivers high-priority heads-up notifications at your scheduled times. Tapping the notification opens Google Messages or Samsung Messages with the recipient and text pre-filled ready to send with 1 tap. Requires zero special permissions.",
                         fontSize = 11.sp,
                         color = Color(0xFF94A3B8),
                         lineHeight = 16.sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Want Silent Background SMS? (Optional on Android 13+):",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF08DAC9)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "1. Tap \"Open App Info\" below.\n2. Tap the ⋮ (three dots) in the top-right corner.\n3. Tap \"Allow restricted settings\" and confirm your PIN.\n4. Go into \"Permissions\" > \"SMS\" > \"Allow\".",
+                        text = "• Want 100% Hands-Free Background Automation? Under Android platform rules, you can set Re:MIND as your Default SMS App below. This natively grants background SMS sending without any privacy errors or blocked settings.",
                         fontSize = 11.sp,
                         color = Color(0xFFCBD5E1),
                         lineHeight = 16.sp
@@ -271,13 +307,13 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = onRequestSmsPermission,
+                            onClick = onRequestDefaultSms,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9)),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1.3f)
                         ) {
-                            Icon(Icons.Default.LockOpen, contentDescription = null, tint = Color(0xFF04201D), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF04201D), modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Request SMS", color = Color(0xFF04201D), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("Set as Default SMS App", color = Color(0xFF04201D), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         }
 
                         Button(
@@ -285,7 +321,7 @@ fun SettingsScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Open App Info", color = Color.White, fontSize = 11.sp)
+                            Text("App Info", color = Color.White, fontSize = 11.sp)
                         }
                     }
                 }
@@ -303,16 +339,16 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = if (hasSmsPermission) "Test Silent SMS Dispatch" else "Test Pre-filled Send",
+                    text = if (canSendSilently) "Test Silent Hardware SMS Dispatch" else "Test Pre-filled Send",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
                 Text(
-                    text = if (hasSmsPermission)
-                        "Send a direct test SMS to confirm hardware carrier dispatch on this device."
+                    text = if (canSendSilently)
+                        "Sends a live test SMS via hardware SIM to verify silent carrier dispatch."
                     else
-                        "Test opening your messaging app with pre-filled text (works with zero permissions).",
+                        "Tests opening your default messaging app with pre-filled text (works with zero permissions).",
                     fontSize = 12.sp,
                     color = Color(0xFF94A3B8),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -342,7 +378,7 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         if (testPhoneNumber.isNotBlank()) {
-                            testSmsStatus = if (hasSmsPermission) "Dispatching test SMS..." else "Opening messaging app..."
+                            testSmsStatus = if (canSendSilently) "Dispatching test SMS..." else "Opening messaging app..."
                             onSendTestSms(testPhoneNumber)
                         }
                     },
@@ -363,7 +399,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (hasSmsPermission) "Send Test Carrier SMS" else "Test Pre-fill in Messages",
+                        text = if (canSendSilently) "Send Test Carrier SMS" else "Test Pre-fill in Messages",
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -464,9 +500,13 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HealthStatusRow(
-                    title = "SMS Dispatch",
-                    isGranted = hasSmsPermission,
-                    note = if (hasSmsPermission) "Silent SIM carrier text dispatch" else "Zero-Permission pre-fill mode active"
+                    title = "SMS Architecture",
+                    isGranted = canSendSilently,
+                    note = when {
+                        isDefaultSmsApp -> "Default SMS App active (silent background sending)"
+                        hasSmsPermission -> "Direct SIM carrier sending active"
+                        else -> "Zero-Permission Intent mode active"
+                    }
                 )
                 HealthStatusRow(
                     title = "Google Contacts",
