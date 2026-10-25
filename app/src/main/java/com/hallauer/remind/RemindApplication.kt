@@ -2,7 +2,6 @@ package com.hallauer.remind
 
 import android.app.Application
 import android.util.Log
-import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -16,14 +15,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.TimeUnit
 
-class RemindApplication : Application(), Configuration.Provider {
+class RemindApplication : Application() {
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setMinimumLoggingLevel(Log.INFO)
-            .build()
 
     override fun onCreate() {
         super.onCreate()

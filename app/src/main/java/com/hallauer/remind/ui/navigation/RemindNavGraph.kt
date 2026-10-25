@@ -84,10 +84,10 @@ val DashboardAnalyticsIcon: ImageVector by lazy {
             strokeLineJoin = StrokeJoin.Round
         ) {
             moveTo(7f, 12.5f)
-            cubicTo(9.2f, 12.5f, 11f, 14.3f, 11f, 16.5f)
-            cubicTo(11f, 18.7f, 9.2f, 20.5f, 7f, 20.5f)
-            cubicTo(4.8f, 20.5f, 3f, 18.7f, 3f, 16.5f)
-            cubicTo(3f, 14.3f, 4.8f, 12.5f, 7f, 12.5f)
+            curveTo(9.2f, 12.5f, 11f, 14.3f, 11f, 16.5f)
+            curveTo(11f, 18.7f, 9.2f, 20.5f, 7f, 20.5f)
+            curveTo(4.8f, 20.5f, 3f, 18.7f, 3f, 16.5f)
+            curveTo(3f, 14.3f, 4.8f, 12.5f, 7f, 12.5f)
             close()
             moveTo(7f, 16.5f)
             lineTo(7f, 12.5f)

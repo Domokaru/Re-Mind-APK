@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
             // Automatic startup runtime permissions requester for SMS, Contacts, and Notifications
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestMultiplePermissions()
-            ) { /* Permissions results handled seamlessly */ }
+            ) { _ -> /* Permissions results handled seamlessly */ }
 
             LaunchedEffect(Unit) {
                 val permissions = mutableListOf(
