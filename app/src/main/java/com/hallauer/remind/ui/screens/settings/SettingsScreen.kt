@@ -15,13 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Send
@@ -47,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -58,9 +59,11 @@ import com.hallauer.remind.data.local.datastore.ThemeMode
 fun SettingsScreen(
     currentTheme: ThemeMode,
     isGlobalPauseEnabled: Boolean,
+    hasSmsPermission: Boolean = false,
     onThemeChanged: (ThemeMode) -> Unit,
     onGlobalPauseToggled: (Boolean) -> Unit,
     onSendTestSms: (String) -> Unit = {},
+    onRequestSmsPermission: () -> Unit = {},
     onExportJsonClicked: () -> Unit = {},
     onImportJsonClicked: () -> Unit = {},
     onSyncFirebaseNow: () -> Unit = {},
@@ -197,8 +200,102 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 3: Carrier SMS Diagnostic
-        SectionTitle(title = "Carrier SMS Diagnostic")
+        // Section 3: Android Privacy & SMS Operating Modes
+        SectionTitle(title = "Android Privacy & Dispatch Modes")
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = if (hasSmsPermission) Color(0xFF111827) else Color(0xFF172033)
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (hasSmsPermission) Color(0xFF065F46) else Color(0xFF0284C7))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (hasSmsPermission) "Direct Silent SMS Active" else "Zero-Permission Mode Active",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (hasSmsPermission) {
+                    Text(
+                        text = "Your device has granted hardware SMS permissions. Re:MIND sends scheduled check-in texts automatically through your carrier SIM in the background.",
+                        fontSize = 12.sp,
+                        color = Color(0xFFE2E8F0),
+                        lineHeight = 17.sp
+                    )
+                } else {
+                    Text(
+                        text = "Modern Android protects privacy by blocking direct SMS permissions on sideloaded apps. Re:MIND runs reliably without needing any SMS permissions at all!",
+                        fontSize = 12.sp,
+                        color = Color(0xFFE2E8F0),
+                        lineHeight = 17.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "• Zero-Permission Workflow: When your scheduled check-in time arrives, you receive a high-priority notification. Tapping it opens Google Messages or Samsung Messages with the recipient and phrase pre-filled ready to send with 1 tap.",
+                        fontSize = 11.sp,
+                        color = Color(0xFF94A3B8),
+                        lineHeight = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Want Silent Background SMS? (Optional on Android 13+):",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF08DAC9)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "1. Tap \"Open App Info\" below.\n2. Tap the ⋮ (three dots) in the top-right corner.\n3. Tap \"Allow restricted settings\" and confirm your PIN.\n4. Go into \"Permissions\" > \"SMS\" > \"Allow\".",
+                        fontSize = 11.sp,
+                        color = Color(0xFFCBD5E1),
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = onRequestSmsPermission,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF08DAC9)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.LockOpen, contentDescription = null, tint = Color(0xFF04201D), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Request SMS", color = Color(0xFF04201D), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        }
+
+                        Button(
+                            onClick = onOpenAndroidSettings,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Open App Info", color = Color.White, fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Section 4: Carrier SMS / Pre-fill Diagnostic
+        SectionTitle(title = "Messaging Diagnostic")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
             shape = RoundedCornerShape(12.dp),
@@ -206,13 +303,16 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "Test Send to Self",
+                    text = if (hasSmsPermission) "Test Silent SMS Dispatch" else "Test Pre-filled Send",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
                 Text(
-                    text = "Send a test SMS to confirm hardware carrier dispatch on this device.",
+                    text = if (hasSmsPermission)
+                        "Send a direct test SMS to confirm hardware carrier dispatch on this device."
+                    else
+                        "Test opening your messaging app with pre-filled text (works with zero permissions).",
                     fontSize = 12.sp,
                     color = Color(0xFF94A3B8),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -242,7 +342,7 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         if (testPhoneNumber.isNotBlank()) {
-                            testSmsStatus = "Dispatching test SMS..."
+                            testSmsStatus = if (hasSmsPermission) "Dispatching test SMS..." else "Opening messaging app..."
                             onSendTestSms(testPhoneNumber)
                         }
                     },
@@ -263,7 +363,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Send Test SMS",
+                        text = if (hasSmsPermission) "Send Test Carrier SMS" else "Test Pre-fill in Messages",
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -283,7 +383,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 4: Data & Cloud Backup
+        // Section 5: Data & Cloud Backup
         SectionTitle(title = "Data & Backup")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
@@ -355,8 +455,8 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section 5: System Permissions
-        SectionTitle(title = "System Permissions")
+        // Section 6: System Permissions & Integrity
+        SectionTitle(title = "System Permissions & Health")
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
             shape = RoundedCornerShape(12.dp),
@@ -365,8 +465,8 @@ fun SettingsScreen(
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HealthStatusRow(
                     title = "SMS Dispatch",
-                    isGranted = true,
-                    note = "Primary SIM carrier text dispatch"
+                    isGranted = hasSmsPermission,
+                    note = if (hasSmsPermission) "Silent SIM carrier text dispatch" else "Zero-Permission pre-fill mode active"
                 )
                 HealthStatusRow(
                     title = "Google Contacts",
@@ -379,9 +479,9 @@ fun SettingsScreen(
                     note = "Scheduled dispatch timing"
                 )
                 HealthStatusRow(
-                    title = "RCS Collision Detector",
+                    title = "Notifications",
                     isGranted = true,
-                    note = "Prevents duplicate same-day messages"
+                    note = "Actionable check-in reminders & status"
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -412,9 +512,9 @@ private fun SectionTitle(title: String) {
 private fun HealthStatusRow(title: String, isGranted: Boolean, note: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = if (isGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
+            imageVector = if (isGranted) Icons.Default.CheckCircle else Icons.Default.Info,
             contentDescription = null,
-            tint = if (isGranted) Color(0xFF34D399) else Color(0xFFF59E0B),
+            tint = if (isGranted) Color(0xFF34D399) else Color(0xFF38BDF8),
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))

@@ -5,17 +5,21 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.hallauer.remind.MainActivity
 import com.hallauer.remind.core.constants.AppConstants
+import com.hallauer.remind.data.provider.SmsDispatcher
 
 object SilentStatusNotifier {
 
     fun initNotificationChannels(context: Context) {
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
+                val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+                val silentChannel = NotificationChannel(
                     AppConstants.CHANNEL_ID_SILENT_STATUS,
                     AppConstants.CHANNEL_NAME_SILENT_STATUS,
                     NotificationManager.IMPORTANCE_LOW
@@ -25,9 +29,63 @@ object SilentStatusNotifier {
                     enableVibration(false)
                     enableLights(false)
                 }
-                val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                manager.createNotificationChannel(channel)
+                manager.createNotificationChannel(silentChannel)
+
+                val alertChannel = NotificationChannel(
+                    AppConstants.CHANNEL_ID_CHECKIN_ALERTS,
+                    AppConstants.CHANNEL_NAME_CHECKIN_ALERTS,
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Reminders and 1-tap messaging actions for scheduled check-ins"
+                    setShowBadge(true)
+                    enableVibration(true)
+                    enableLights(true)
+                }
+                manager.createNotificationChannel(alertChannel)
             }
+        }
+    }
+
+    fun notifyReadyToSendSms(
+        context: Context,
+        contactName: String,
+        phoneNumber: String,
+        messageText: String,
+        logId: Long
+    ) {
+        runCatching {
+            initNotificationChannels(context)
+
+            val dispatcher = SmsDispatcher(context)
+            val smsIntent = dispatcher.createSendIntent(phoneNumber, messageText).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                logId.toInt() + 10000,
+                smsIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val text = "\"$messageText\""
+            val notification = NotificationCompat.Builder(context, AppConstants.CHANNEL_ID_CHECKIN_ALERTS)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Send Check-in to $contactName")
+                .setContentText(text)
+                .setSubText("Tap to Send in Messages")
+                .setStyle(NotificationCompat.BigTextStyle().bigText("$text\n\nTap to send via your messaging app."))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .addAction(
+                    android.R.drawable.ic_menu_send,
+                    "Send via Messages",
+                    pendingIntent
+                )
+                .setAutoCancel(true)
+                .build()
+
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.notify(logId.toInt() + 4000, notification)
         }
     }
 

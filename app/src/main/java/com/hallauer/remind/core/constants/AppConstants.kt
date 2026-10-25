@@ -14,6 +14,8 @@ object AppConstants {
     // Notification Channel IDs
     const val CHANNEL_ID_SILENT_STATUS = "channel_silent_status"
     const val CHANNEL_NAME_SILENT_STATUS = "Re:MIND Silent Status & Diagnostics"
+    const val CHANNEL_ID_CHECKIN_ALERTS = "channel_checkin_alerts"
+    const val CHANNEL_NAME_CHECKIN_ALERTS = "Re:MIND Check-in Reminders & Actions"
 
     // Action Intents
     const val ACTION_DISPATCH_SMS = "com.hallauer.remind.ACTION_DISPATCH_SMS"

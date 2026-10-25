@@ -129,43 +129,72 @@ class SmsDispatchWorker(
             return@withContext Result.failure()
         }
 
-        // 6. Silent SMS Dispatch via Primary SIM
+        // 6. Dispatch SMS or Send Actionable Notification (Zero-Permission Mode)
         val dispatcher = SmsDispatcher(appContext)
-        val dispatchResult = dispatcher.dispatchSms(
-            phoneNumber = schedule.phoneNumber,
-            messageText = pendingLog.messageText,
-            logId = pendingLog.id
-        )
+        if (dispatcher.hasSendSmsPermission()) {
+            val dispatchResult = dispatcher.dispatchSms(
+                phoneNumber = schedule.phoneNumber,
+                messageText = pendingLog.messageText,
+                logId = pendingLog.id
+            )
 
-        if (dispatchResult.isSuccess) {
+            if (dispatchResult.isSuccess) {
+                val sentLog = pendingLog.copy(
+                    status = MessageStatus.SENT,
+                    executedEpochMillis = System.currentTimeMillis(),
+                    statusNote = "Dispatched via device SMS"
+                )
+                messageLogDao.updateLog(sentLog)
+                SilentStatusNotifier.notifyMessageDispatched(appContext, schedule.displayName, pendingLog.messageText, pendingLog.id)
+
+                // Update contact with last sent phrase and last dispatched date
+                val updatedSchedule = schedule.copy(
+                    lastSentPhraseId = pendingLog.phraseId,
+                    lastSentPhraseText = pendingLog.messageText,
+                    lastDispatchedDateIso = LocalDate.now().toString()
+                )
+                contactScheduleDao.updateSchedule(updatedSchedule)
+
+                // Immediately pre-roll next single occurrence
+                repository.preRollNextOccurrence(updatedSchedule)
+                Result.success()
+            } else {
+                val errorMsg = dispatchResult.exceptionOrNull()?.message ?: "Radio error"
+                val failedLog = pendingLog.copy(
+                    status = MessageStatus.FAILED,
+                    executedEpochMillis = System.currentTimeMillis(),
+                    statusNote = "Dispatch failed: $errorMsg"
+                )
+                messageLogDao.updateLog(failedLog)
+                Result.retry()
+            }
+        } else {
+            // Zero-Permission / Restricted Privacy Mode:
+            // High-priority notification with pre-filled Intent.ACTION_SENDTO to launch Messages app
+            SilentStatusNotifier.notifyReadyToSendSms(
+                context = appContext,
+                contactName = schedule.displayName,
+                phoneNumber = schedule.phoneNumber,
+                messageText = pendingLog.messageText,
+                logId = pendingLog.id
+            )
+
             val sentLog = pendingLog.copy(
                 status = MessageStatus.SENT,
                 executedEpochMillis = System.currentTimeMillis(),
-                statusNote = "Dispatched via device SMS"
+                statusNote = "Delivered via Ready-to-Send notification (Zero-permission mode)"
             )
             messageLogDao.updateLog(sentLog)
-            SilentStatusNotifier.notifyMessageDispatched(appContext, schedule.displayName, pendingLog.messageText, pendingLog.id)
 
-            // Update contact with last sent phrase and last dispatched date
             val updatedSchedule = schedule.copy(
                 lastSentPhraseId = pendingLog.phraseId,
                 lastSentPhraseText = pendingLog.messageText,
                 lastDispatchedDateIso = LocalDate.now().toString()
             )
             contactScheduleDao.updateSchedule(updatedSchedule)
-
-            // Immediately pre-roll next single occurrence
             repository.preRollNextOccurrence(updatedSchedule)
+
             Result.success()
-        } else {
-            val errorMsg = dispatchResult.exceptionOrNull()?.message ?: "Radio error"
-            val failedLog = pendingLog.copy(
-                status = MessageStatus.FAILED,
-                executedEpochMillis = System.currentTimeMillis(),
-                statusNote = "Dispatch failed: $errorMsg"
-            )
-            messageLogDao.updateLog(failedLog)
-            Result.retry()
         }
     }
 }

@@ -67,6 +67,8 @@ import com.hallauer.remind.data.local.datastore.SettingsDataStore
 import com.hallauer.remind.data.local.datastore.ThemeMode
 import com.hallauer.remind.data.local.entity.ContactScheduleEntity
 import com.hallauer.remind.data.local.entity.GroupBucket
+import com.hallauer.remind.data.local.entity.MessageLogEntity
+import com.hallauer.remind.data.local.entity.MessageStatus
 import com.hallauer.remind.data.local.entity.PhraseEntity
 import com.hallauer.remind.data.local.entity.RecurrenceType
 import com.hallauer.remind.data.local.entity.TimeMode
@@ -197,16 +199,25 @@ class MainActivity : ComponentActivity() {
             }
             val settingsDataStore = remember { SettingsDataStore(applicationContext) }
 
-            // Automatic startup runtime permissions requester for SMS, Contacts, and Notifications
+            // Runtime permissions requester for Contacts and Notifications (benign on cold-start)
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestMultiplePermissions()
             ) { _ -> /* Permissions results handled seamlessly */ }
 
+            // Dedicated SMS permission requester for manual enablement in Settings
+            val smsPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { isGranted ->
+                if (isGranted) {
+                    Toast.makeText(applicationContext, "SMS permission granted! Direct carrier dispatch enabled.", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(applicationContext, "SMS permission not granted. Operating in Zero-Permission mode.", Toast.LENGTH_LONG).show()
+                }
+            }
+
             LaunchedEffect(Unit) {
                 runCatching {
                     val permissions = mutableListOf(
-                        Manifest.permission.SEND_SMS,
-                        Manifest.permission.READ_SMS,
                         Manifest.permission.READ_CONTACTS
                     )
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -384,6 +395,55 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val handleSendNow: (MessageLogEntity) -> Unit = { log ->
+                scope.launch {
+                    val dispatcher = SmsDispatcher(applicationContext)
+                    val sched = schedules.find { it.id == log.contactScheduleId }
+
+                    if (dispatcher.hasSendSmsPermission()) {
+                        val res = dispatcher.dispatchSms(
+                            phoneNumber = log.contactPhoneNumber,
+                            messageText = log.messageText,
+                            logId = log.id
+                        )
+                        withContext(Dispatchers.Main) {
+                            if (res.isSuccess) {
+                                Toast.makeText(applicationContext, "Dispatched SMS to ${log.contactDisplayName}!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(applicationContext, "SMS failed: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        // Zero-Permission Mode: launch pre-filled messaging app
+                        runCatching {
+                            val intent = dispatcher.createSendIntent(log.contactPhoneNumber, log.messageText)
+                            startActivity(intent)
+                        }.onFailure { err ->
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(applicationContext, "Unable to launch messaging app: ${err.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    // Update database log as sent and pre-roll next occurrence
+                    val sentLog = log.copy(
+                        status = MessageStatus.SENT,
+                        executedEpochMillis = System.currentTimeMillis(),
+                        statusNote = if (dispatcher.hasSendSmsPermission()) "Sent via device SMS" else "Opened in Messages app (Zero-permission mode)"
+                    )
+                    database.messageLogDao().updateLog(sentLog)
+
+                    if (sched != null) {
+                        val updatedSched = sched.copy(
+                            lastSentPhraseText = log.messageText,
+                            lastDispatchedDateIso = LocalDate.now().toString()
+                        )
+                        database.contactScheduleDao().updateSchedule(updatedSched)
+                        repository.preRollNextOccurrence(updatedSched)
+                    }
+                }
+            }
+
             ReMINDTheme(darkTheme = themeMode != ThemeMode.LIGHT) {
                 Scaffold(
                     topBar = {
@@ -472,12 +532,7 @@ class MainActivity : ComponentActivity() {
                                     upcomingMessages = pendingLogs,
                                     recentHistory = historyLogs,
                                     onRequestPermissions = { openAppInfoSettings() },
-                                    onSendNow = { log ->
-                                        scope.launch {
-                                            val sched = schedules.find { it.id == log.contactScheduleId }
-                                            if (sched != null) repository.preRollNextOccurrence(sched)
-                                        }
-                                    },
+                                    onSendNow = handleSendNow,
                                     onRerollPhrase = { log ->
                                         scope.launch { repository.rerollPendingMessage(log.id) }
                                     },
@@ -499,12 +554,7 @@ class MainActivity : ComponentActivity() {
                                     pendingMessages = pendingLogs,
                                     historyMessages = historyLogs,
                                     virtualProjections = virtualProjections,
-                                    onSendNow = { log ->
-                                        scope.launch {
-                                            val sched = schedules.find { it.id == log.contactScheduleId }
-                                            if (sched != null) repository.preRollNextOccurrence(sched)
-                                        }
-                                    },
+                                    onSendNow = handleSendNow,
                                     onRerollPhrase = { log ->
                                         scope.launch { repository.rerollPendingMessage(log.id) }
                                     },
@@ -526,7 +576,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onSaveSchedule = { sched ->
                                         scope.launch {
-                                            val insertedId = database.contactScheduleDao().insertSchedule(sched)
+                                             val insertedId = database.contactScheduleDao().insertSchedule(sched)
                                             val fullSched = sched.copy(id = if (sched.id == 0L) insertedId else sched.id)
                                             repository.preRollNextOccurrence(fullSched)
                                         }
@@ -558,35 +608,52 @@ class MainActivity : ComponentActivity() {
                                 Screen.Settings -> SettingsScreen(
                                     currentTheme = themeMode,
                                     isGlobalPauseEnabled = isGlobalPause,
+                                    hasSmsPermission = SmsDispatcher(applicationContext).hasSendSmsPermission(),
                                     onThemeChanged = { mode ->
                                         scope.launch { settingsDataStore.setThemeMode(mode) }
                                     },
                                     onGlobalPauseToggled = { paused ->
                                         scope.launch { settingsDataStore.setGlobalPause(paused) }
                                     },
+                                    onRequestSmsPermission = {
+                                        smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                                    },
                                     onSendTestSms = { phoneNumber ->
-                                        scope.launch(Dispatchers.IO) {
-                                            val dispatcher = SmsDispatcher(applicationContext)
-                                            val res = dispatcher.dispatchSms(
-                                                phoneNumber = phoneNumber,
-                                                messageText = "Re:MIND Carrier Test: Primary SIM hardware SMS radio is operational.",
-                                                logId = 999999L
-                                            )
-                                            withContext(Dispatchers.Main) {
-                                                if (res.isSuccess) {
-                                                    Toast.makeText(
-                                                        applicationContext,
-                                                        "Carrier test SMS dispatched successfully to $phoneNumber!",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                } else {
-                                                    val err = res.exceptionOrNull()?.message ?: "Radio error"
-                                                    Toast.makeText(
-                                                        applicationContext,
-                                                        "Carrier test SMS failed: $err",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
+                                        val dispatcher = SmsDispatcher(applicationContext)
+                                        if (dispatcher.hasSendSmsPermission()) {
+                                            scope.launch(Dispatchers.IO) {
+                                                val res = dispatcher.dispatchSms(
+                                                    phoneNumber = phoneNumber,
+                                                    messageText = "Re:MIND Carrier Test: Hardware SMS radio is operational.",
+                                                    logId = 999999L
+                                                )
+                                                withContext(Dispatchers.Main) {
+                                                    if (res.isSuccess) {
+                                                        Toast.makeText(
+                                                            applicationContext,
+                                                            "Carrier test SMS dispatched successfully to $phoneNumber!",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
+                                                    } else {
+                                                        val err = res.exceptionOrNull()?.message ?: "Radio error"
+                                                        Toast.makeText(
+                                                            applicationContext,
+                                                            "Carrier test SMS failed: $err",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
+                                                    }
                                                 }
+                                            }
+                                        } else {
+                                            runCatching {
+                                                val intent = dispatcher.createSendIntent(
+                                                    phoneNumber = phoneNumber,
+                                                    messageText = "Re:MIND Test: Zero-permission SMS composer is operational."
+                                                )
+                                                startActivity(intent)
+                                                Toast.makeText(applicationContext, "Opened messaging app (Zero-permission mode)", Toast.LENGTH_SHORT).show()
+                                            }.onFailure { err ->
+                                                Toast.makeText(applicationContext, "Error: ${err.message}", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     },

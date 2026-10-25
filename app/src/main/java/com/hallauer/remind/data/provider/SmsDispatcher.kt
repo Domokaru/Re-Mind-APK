@@ -1,17 +1,42 @@
 package com.hallauer.remind.data.provider
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
+import androidx.core.content.ContextCompat
 import com.hallauer.remind.core.constants.AppConstants
 
 class SmsDispatcher(private val context: Context) {
 
+    fun hasSendSmsPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.SEND_SMS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun createSendIntent(phoneNumber: String, messageText: String): Intent {
+        val cleanNumber = phoneNumber.trim()
+        val uri = Uri.parse("smsto:${Uri.encode(cleanNumber)}")
+        return Intent(Intent.ACTION_SENDTO, uri).apply {
+            putExtra("sms_body", messageText)
+            putExtra(Intent.EXTRA_TEXT, messageText)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+    }
+
     fun dispatchSms(phoneNumber: String, messageText: String, logId: Long): Result<Unit> {
         return runCatching {
+            if (!hasSendSmsPermission()) {
+                throw SecurityException("SEND_SMS permission not granted or restricted by Android privacy settings.")
+            }
+
             val smsManager: SmsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val subId = SmsManager.getDefaultSmsSubscriptionId()
                 if (subId != SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
